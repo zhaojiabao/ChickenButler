@@ -1,0 +1,461 @@
+<template>
+	<div class="pm_autumn">
+		<!--头部图片  start-->
+		<div class="head">
+			<img src="https://img.jianong.com/ative-autumn-head.png" />
+		</div>
+		<!--头部图片  end-->
+		<!--活动说明 start-->
+		<img src="https://img.jianong.com/ative-autumn-intro.png" class="intro" @click="pushPage" />
+
+		<!--活动说明 end-->
+		<!--倒计时 start-->
+		<div class="lotty-n">
+			<div class="countdown">
+				<div class="left-text">
+					<img src="../../assets/images/active/datetime.png" />
+				</div>
+				<div class="datetime">
+					<span>{{ rTime.h | TimeText }}</span>
+					<b>:</b>
+					<span>{{ rTime.m | TimeText }}</span>
+					<b>:</b>
+					<span>{{ rTime.s | TimeText }}</span>
+				</div>
+				<div class="right-text">
+					<img src="../../assets/leiji.png" />
+				</div>
+			</div>
+		</div>
+		<!--倒计时 end-->
+
+		<!--抽奖区 start-->
+		<div class="main">
+			<div class="dashed-line">
+			</div>
+			<div class="weui-flex" v-for="index in 3">
+				<template v-for="(goods,i) in goodsList">
+					<div class="weui-flex__item" v-if="i>(index-1)*3 && i<= index*3" :class="{'item-lotty':i==5}" @click="itemClick(i)">
+						<img :src="goods.image" v-if="i!=5" />
+						<img src="https://img.jianong.com/ative-autumn-lotty-btn.png" v-else />
+						<div class="item-selected" v-if="i==selectIndex"></div>
+					</div>
+				</template>
+			</div>
+		</div>
+		<!--抽奖区 end-->
+
+		<div v-transfer-dom>
+			<x-dialog v-model="is_lotty_show">
+				<div class="blue-text" style="padding: 8px;font-size: 18px;">
+					{{ alert_text }}
+				</div>
+				<div class="img-box">					
+					<img :src="goodsList[prizeresult].image" style="max-width:100%" v-if="goodsList !=''">
+				</div>
+				<div @click="is_lotty_show=false" class="close-box">
+					<span class="vux-close"></span>
+				</div>
+			</x-dialog>
+		</div>
+
+		<div class="footer">
+			本活动最终解释权归嘉农在线所有
+		</div>
+	</div>
+</template>
+
+<script>
+	var u = navigator.userAgent,
+		app = navigator.appVersion;
+	var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //android终端或者uc浏览器
+	var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+
+	var lottyArr = [1, 2, 3, 6, 9, 8, 7, 4]; //抽奖顺序
+	var timer;
+	import { Popup, Icon, XDialog, TransferDomDirective as TransferDom } from 'vux';
+	import { getGoods, getUserPrize, addScores, addPrize, getPrize, getRecordLog } from '../../api/BeneActive'
+	export default {
+		directives: {
+			TransferDom
+		},
+		components: {
+			Popup,
+			Icon,
+			XDialog
+		},
+		data() {
+			return {
+				selectIndex: 0,
+				isStop: false,
+				is_lotty_show: false,
+				lottyArr: lottyArr,
+				lotty: 1,
+				alert_text:'',
+				rTime: {
+					h: 0,
+					m: 0,
+					s: 0
+				},
+				goodsList:'', //奖品
+				prizes: [],
+				prizeresult: 1,
+				is_app: false,
+				round_index: 3, //第三轮中奖
+				ticket: false,
+				lotty_list:{'12':1,'15':4,'19':8,'20':9}//奖品对应表
+			}
+		},
+		mounted() {
+			this.GetRTime();
+			this.ticket = this.$route.query.ticket;
+			if(!this.ticket) {
+				this.ticket = localStorage.getItem('ticket');
+				if(!this.ticket)this.ticket = this.$route.query.ticket;
+			}
+			if(!this.ticket) {
+				this.$store.state.source_url_name = this.$route.path;
+				this.$router.push('p/login');
+			}
+			getGoods().then(rs => {
+				this.goodsList = rs.data;
+			})
+			
+			this.$wechat.ready(() => {
+				var title = '蛋鸡管家 - 全球蛋鸡产业信息化平台';
+				var link = window.location.href;
+				var imgUrl = 'https://api.danjiguanjia.com/public/icon120.png';
+				this.$wechat.onMenuShareTimeline({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareAppMessage({
+					title: title,
+					desc: '关注蛋鸡管家,随时掌握最新行情信息!',
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareQQ({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareWeibo({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+			});
+			
+		},
+		methods: {
+			itemClick(i) {
+				if(this.selectIndex == 0) {					
+					addPrize({
+						ticket: this.ticket
+					}).then(rs => {
+						var prizeresult = 0;
+						if(rs.data != undefined){
+							 prizeresult = this.lotty_list[rs.data.prize_id];
+						}
+						if(rs.retcode == 2000) {
+							this.prizeDraw();
+							this.prizeresult = prizeresult;
+						} else if(rs.retcode == 4001) {
+							this.selectIndex = prizeresult;
+							this.prizeresult = prizeresult;
+							this.is_lotty_show = true; //显示中奖弹窗
+							this.alert_text = "您已经中过奖啦！";
+						} else {
+							this.$vux.alert.show({
+								title: '非常抱歉！',
+								content: rs.msg
+							})
+						}
+					});
+				} else {
+					this.is_lotty_show = true; //显示中奖弹窗
+					this.alert_text = "您已经中过奖啦！";
+				}
+			},
+			//点击抽奖动画
+			prizeDraw() {
+				this.lotty = 0;
+				var round = 0;
+				timer = setInterval(() => {
+					if(this.isStop) { //停止抽奖
+						clearInterval(timer);
+						this.isStop = false;
+					} else {
+						//中奖纪录
+						this.selectIndex = lottyArr[this.lotty];
+						this.lotty++;
+						if(this.lotty > 7) {
+							this.lotty = 0; //最大值范围
+							round++;
+						}
+						if(round == this.round_index && this.selectIndex == this.prizeresult) {
+							this.isStop = true;
+							this.selectIndex = this.prizeresult;
+							this.is_lotty_show = true; //显示中奖弹窗
+							this.alert_text = "恭喜您，中奖啦！";
+						}
+					}
+				}, 50);
+			},
+			GetRTime() {
+				var endTime = new Date('2017/10/01 00:00:00');
+				var nowTime, t;
+				var ita = setInterval(() => {
+					nowTime = new Date();
+					t = endTime.getTime() - nowTime.getTime();
+					if(t >= 0) {
+						this.rTime.h = Math.floor(t / 1000 / 60 / 60);
+						this.rTime.m = Math.floor(t / 1000 / 60 % 60);
+						this.rTime.s = Math.floor(t / 1000 % 60);
+					} else {
+						clearInterval(ita);
+					}
+				}, 1000);
+			},
+			pushPage() {
+				window.location.href = 'https://api.danjiguanjia.com/v4/news/viewDetail/id/4258.html';
+			}
+		},
+		filters: {
+			TimeText: function(t) {
+				return t >= 10 ? t : '0' + t;
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	.close-box{border-top:1px solid #C8C8CD ; }
+	.vux-close {
+		margin-top: 8px;
+		margin-bottom: 8px;
+		position: relative;
+		display: inline-block;
+		vertical-align: middle;
+		color: #999;
+		width: 24px;
+		height: 24px;
+				
+		&:before, &:after {
+            content: '';
+            position: absolute;
+            top: 11px;
+            left: 0;
+            width: 24px;
+            height: 1px;
+            background-color: #888;
+            -webkit-transform: rotate(45deg);
+            transform: rotate(45deg);
+        }
+
+		&:after {
+			-webkit-transform: rotate(-45deg);
+            transform: rotate(-45deg);
+		}
+	}
+	
+	.pm_autumn {
+		background-image: url(https://img.jianong.com/ative-autumn-bg.jpg);
+		background-size: cover;
+		height: 100%;
+		.close-btn {
+			position: fixed;
+			top: 5px;
+			right: 2px;
+		}
+		.hundred {
+			position: absolute;
+			width: 100vw;
+			height: 115vh;
+			top: 0;
+			left: 0;
+		}
+		.blue-text {
+			color: #071857
+		}
+		.result {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 12;
+			.mask {
+				background: #000000;
+				opacity: 0.4;
+			}
+			.msg {
+				position: relative;
+				z-index: 15;
+				width: 70vw;
+				img {
+					width: 100%;
+					display: block;
+				}
+				.close {
+					width: 10vw;
+					position: absolute;
+					right: 10vw;
+					top: 10vw;
+					z-index: 5;
+				}
+				.content {
+					position: absolute;
+					top: 0;
+					left: 0;
+					padding-top: 20vw;
+					width: 100%;
+					img {
+						width: 40%;
+						margin: auto;
+					}
+					.text {
+						padding: 0 15vw;
+						text-align: center;
+						margin-top: 5vw;
+						h1 {
+							font-size: 18px;
+						}
+						p {
+							margin-top: 25px;
+							font-size: 14px;
+							font-weight: 800;
+						}
+					}
+				}
+			}
+		}
+		.intro {
+			position: absolute;
+			width: 20vw;
+			right: 0;
+			top: 0
+		}
+		.head {
+			padding-top: 10vh;
+			img {
+				display: block;
+				margin: auto;
+				width: 80%;
+			}
+		}
+		.lotty-n {
+			img {
+				display: block;
+				width: 100%;
+			}
+			.newman {
+				width: 55vw;
+				margin: 0 auto;
+				position: relative;
+				.receive-rewards {
+					position: absolute;
+					right: -30px;
+				}
+			}
+			.manage {
+				margin-bottom: 15px;
+				.title {
+					margin-left: 5vw;
+					width: 50vw;
+				}
+			}
+			.receive-rewards {
+				width: 30vw;
+				margin: auto;
+			}
+			.countdown {
+				margin-left: 5vw;
+				margin-top: 25px;
+				div {
+					font-family: "微软雅黑";
+					display: inline-block;
+				}
+				.left-text {
+					width: 12vw;
+				}
+				.right-text {
+					width: 50vw;
+				}
+				.datetime {
+					margin: 0 5px;
+					span {
+						display: inline-block;
+						background: #fcc81d;
+						padding: 3px 5px;
+					}
+				}
+			}
+		}
+		.main {
+			margin: 12vw 10vw;
+			min-height: 75vw;
+			position: relative;
+			background: #fedf0b;
+			border: 8px solid #d5790c;
+			border-radius: 16px;
+			.weui-flex {
+				position: relative;
+				z-index: 2;
+				.weui-flex__item {
+					position: relative;
+					background: #fff3b6;
+					margin: 5px;
+					padding: 5px;
+					border-radius: 10px;
+					-moz-box-shadow: 0px 4px 3px #ffbb00;
+					-webkit-box-shadow: 0px 4px 3px #ffbb00;
+					box-shadow: 0px 4px 3px #ffbb00;
+					img {
+						width: 100%;
+					}
+				}
+				.item-selected {
+					position: absolute;
+					border: 3px solid #d5790c;
+					width: 100%;
+					height: 100%;
+					top: -3px;
+					left: -3px;
+					border-radius: 10px;
+				}
+				.item-lotty {
+					background: #f1ca6d;
+				}
+			}
+			.dashed-line {
+				border: dashed #ffde0b 2px;
+				position: absolute;
+				z-index: 1;
+				border-radius: 10px;
+				top: -4px;
+				left: -4px;
+				height: 101.5%;
+				width: 101.5%;
+			}
+		}
+		.footer {
+			text-align: center;
+			margin: 15px;
+		}
+	}
+	
+	@media screen and (max-width: 400px) {
+		.cool-summer {
+			.lotty-n {
+				.countdown {
+					.datetime {
+						span {
+							padding: 1px 3px;
+						}
+					}
+				}
+			}
+		}
+	}
+</style>

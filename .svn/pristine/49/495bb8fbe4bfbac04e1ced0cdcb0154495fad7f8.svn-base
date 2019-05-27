@@ -1,0 +1,108 @@
+<template>
+	<!--该页面为新闻详情页-->
+	<div class="news-detail">
+		<h1>{{data.title}}</h1>
+		<p class="source-author"><span>{{data.source}}</span><span>{{data.author}}</span></p>
+		<p class="time-view"><span>{{data.create_time}}</span><span>阅读 {{param.view|newsView}}</span></p>
+		<video :src="data.url" v-show="data.url!=''" width="100%" controls="controls"></video>
+		<div class="chicken-detail" v-html="data.content">
+			
+			
+		</div>
+	</div>
+</template>
+
+<script>
+	import { newsDetail, newsDetailParams,userAction } from "../../api/api"
+	export default {
+		data() {
+			return {
+				data: {},
+				param: {view:0}
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '资讯详情';
+			this.$store.state.header.right_title = "";
+			this.$store.state.header.right_url = "";
+
+			newsDetailParams({
+				ticket: this.$store.state.ticket,
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.param = rs.data;
+			})
+
+			newsDetail({
+				ticket: this.$store.state.ticket,
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.data = rs.data;
+				//console.log(rs.data)
+			})
+			
+			userAction({
+				ticket:this.$store.state.ticket,
+				module:11,
+				cur_version:this.$store.state.cur_version
+			})
+		},
+		filters:{
+			newsView(view){
+				var str = "";
+				if(view == 0){
+					str = "加载中...";
+				}else{
+					str = view+1;
+				}
+				return str;
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	.chicken-detail {
+		height: 95vh;
+		width: 100%;
+		section{
+			p,sapn{
+				font-size: 16px;
+			}
+		}
+	}
+	
+	.news-detail {
+		width: 90%;
+		margin: 0 auto;
+		img {
+			width: 100%;
+		}
+		h1 {
+			font-size: 1.5rem;
+			padding: 1rem 0;
+			text-align: center;
+		}
+		.source-author,
+		.time-view {
+			text-align: center;
+			padding: 0.3rem 0;
+			span {
+				padding: 1rem;
+				color: #ccc;
+			}
+		}
+	}
+	.vux-header .vux-header-left a,
+	.vux-header .vux-header-left button,
+	.vux-header .vux-header-right a,
+	.vux-header .vux-header-right button {
+		color: #57B663;
+	}
+	.news-bom{
+		position: fixed;
+		bottom: -5rem;
+		left: 5%;
+		padding-bottom: 20vh;
+	}
+</style>

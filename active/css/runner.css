@@ -1,0 +1,282 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html,
+body {
+	font-size: 12px;
+}
+
+a,
+a:hover,
+a:active,
+a:visited,
+a:link,
+a:focus {
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	-webkit-tap-highlight-color: transparent;
+	outline: none;
+	background: none;
+	text-decoration: none;
+}
+
+body {
+	width: 100%;
+	height: 551px;
+	background-image: url(https://img.jianong.com/active-guoqin.jpg);
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	padding-top: 20px;
+}
+
+.r-outer {
+	width: 300px;
+	height: 531px;
+	background-image: url(https://api.danjiguanjia.com/public/static/active/img/zhuanpan1.png);
+	margin: 0px auto;
+}
+
+.r-outer>p {
+	width: 300px;
+	position: absolute;
+	top: 365px;
+	text-align: center;
+	color: white;
+	font-size: 1rem;
+}
+
+.r-outer>p>span {
+	font-size: 1.2rem;
+	color: rgb(255, 222, 67);
+}
+
+.r-outer>.r-text {
+	position: absolute;
+	top: 430px;
+	width: 300px;
+}
+
+.runner {
+	margin: 0 auto;
+	width: 300px;
+	height: 300px;
+	position: relative;
+}
+
+.runner>img {
+	width: 300px;
+	height: 300px;
+}
+
+.runner>canvas {
+	position: absolute;
+	top: 62px;
+	left: 0px;
+	z-index: 9;
+}
+
+.runner>a {
+	display: block;
+	width: 80px;
+	height: 100px;
+	background: url(https://api.danjiguanjia.com/public/static/active/img/pointer.png);
+	background-repeat: no-repeat;
+	background-size: 80px 100px;
+	position: absolute;
+	left: 110px;
+	bottom: 50px;
+	z-index: 999;
+}
+
+.runner>a:active {
+	transform: scale(0.95);
+}
+
+.g-content .g-lottery-case {
+	width: 100%;
+	height: 350px;
+	margin: 0 auto;
+	overflow: hidden;
+}
+
+.g-content .g-lottery-case .g-left h2 {
+	font-size: 20px;
+	line-height: 32px;
+	font-weight: normal;
+	margin-left: 20px;
+}
+
+.g-content .g-lottery-case .lottery_tips {
+	width: 100%;
+	line-height: 3rem;
+	text-align: center;
+	font-size: 1rem;
+}
+
+.g-lottery-box {
+	position: relative;
+	z-index: 10;
+	width: 300px;
+	height: 300px;
+	margin: 0 auto;
+}
+
+.g-lottery-box-bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: -1;
+}
+
+.g-lottery-box-bg>img {
+	width: 100%;
+	height: 100%;
+}
+
+.g-lottery-box .g-lottery-img {
+	width: 241px;
+	height: 241px;
+	position: absolute;
+	left: 30px;
+	top: 29px;
+}
+
+.g-lottery-img>img {
+	width: 100%;
+	height: 100%;
+}
+
+.g-lottery-box .playbtn {
+	width: 100px;
+	height: 100px;
+	position: absolute;
+	top: 90px;
+	left: 100px;
+	background: url(http://www.danjiguanjia.com/huodong/Public/Home/1.png) no-repeat;
+	background-size: auto 100px;
+	background-position: top;
+}
+
+.rules_box {
+	width: 260px;
+	margin: 0 auto;
+	padding: 0.5rem 1rem;
+	background-color: rgb(206, 47, 28);
+}
+
+#box1 {
+	background-color: rgb(176, 11, 5);
+}
+
+#WinningRecord {
+	color: white;
+	list-style: none;
+}
+
+#WinningRecord span {
+	color: rgb(253, 225, 118);
+}
+
+.rules_title {
+	margin: 0;
+	line-height: 2rem;
+	font-size: 1.2rem;
+	color: #fff;
+	text-align: left;
+}
+
+.rules_content {
+	line-height: 1.2rem;
+	font-size: 0.9rem;
+	color: #fff;
+}
+
+.rules_content .l {
+	float: left;
+}
+
+.rules_content .r {
+	float: right;
+	width: 90px;
+}
+
+.modal_box {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1000;
+}
+
+.modal_bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: -1;
+	background-color: #000;
+	opacity: .5;
+}
+
+.modal_panel {
+	width: 76%;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	margin: 30% auto 0;
+	background-color: #fff;
+}
+
+.modal_tips {
+	line-height: 1.5rem;
+	font-size: 0.8rem;
+}
+
+.input_group {
+	padding: 0.3rem 0;
+	text-align: center;
+}
+
+.input_group>input {
+	width: 100%;
+	height: 2.5rem;
+	border: solid 0.2rem #ddd;
+	border-radius: 0.5rem;
+	font-size: 0.8rem;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+}
+
+.input_group>textarea {
+	max-width: 100%;
+	min-width: 100%;
+	min-height: 6rem;
+	max-height: 6rem;
+	border: solid 0.2rem #ddd;
+	border-radius: 0.5rem;
+	font-size: 0.8rem;
+	padding: 0.5rem;
+}
+
+.input_group>input:focus,
+.input_group>textarea:focus {
+	border-color: #2bb359;
+}
+
+.input_group>button {
+	width: 8rem;
+	height: 2rem;
+	line-height: 2rem;
+	border: none;
+	border-radius: 5rem;
+	background: #2bb359;
+	color: #fff;
+	font-size: 0.9rem;
+	font-weight: normal;
+}

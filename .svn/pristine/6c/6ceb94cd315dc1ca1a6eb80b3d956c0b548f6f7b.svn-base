@@ -1,0 +1,164 @@
+<template>
+	<div class="my-message">
+		<div class="my-message-fixed">
+			<button-tab style="padding: 1rem 0;">
+				<button-tab-item selected @on-item-click="onItemClick">普通帖</button-tab-item>
+				<button-tab-item @on-item-click="onItemClick">提问帖</button-tab-item>
+			</button-tab>
+		</div>
+		<div class="my-message-main" v-for="my_messge in my_message_list" @click="forumClick(my_messge.community_id)">
+			<div class="my-message-wrap">
+				<div class="my-message-main-left">
+					<img :src="my_messge.portrait" alt="" />
+				</div>
+				<div class="my-message-main-center">
+					<p>{{my_messge.nickname}}</p>
+					<p v-html="urlHtmlReplace(my_messge.content)"></p>
+					<p><i><img src="../../assets/time.png" alt="" /></i> <span>{{my_messge.create_time}}</span></p>
+				</div>
+				<div class="my-message-main-right">
+					<p class="my-message-title">{{my_messge.title}}</p>
+					<p class="my-message-content">{{my_messge.contents}}</p>
+				</div>
+			</div>
+			<hr/>
+		</div>
+		<mugen-scroll :handler="fetchData" :should-handle="!loading" scroll-container="wrap">
+
+		</mugen-scroll>
+	</div>
+
+</template>
+
+<script>
+	import { ButtonTab, ButtonTabItem } from 'vux'
+	import { myMessage } from '../../api/api'
+	import MugenScroll from 'vue-mugen-scroll'
+	export default {
+		components: {
+			ButtonTab,
+			ButtonTabItem,
+			MugenScroll
+		},
+		data() {
+			return {
+				my_message_list: [],
+				types: [3, 2],
+				loading: false
+			}
+		},
+		methods: {
+			onItemClick(index) {
+				this.page = 1;
+				this.my_message_list = [];
+				this.type = this.types[index];
+				myMessage({
+					type: this.type,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					if(res.data != undefined) this.my_message_list = res.data.list;
+				});
+			},
+			urlHtmlReplace(str) {
+				if(str == undefined) return '';
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			forumClick(id) {
+				this.$router.push('/p/forum/post-detail/' + id)
+			},
+			fetchData() {
+				this.page++;
+				myMessage({
+					type: this.type,
+					page: this.page,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					for(var i = 0; i < res.data.list.length; i++) {
+						this.my_message_list.push(res.data.list[i]);
+					}
+				});
+			}
+		},
+		mounted() {
+			this.$store.state.header.right_title = "";
+			this.$store.state.header.title = '我的消息';
+			this.type = this.types[0];
+			if(this.$store.state.ticket == null) {
+				this.$store.state.source_url_name = '/p/mymessage';
+				this.$router.push('/p/login')
+				return false;
+			}
+			myMessage({
+				type: this.type,
+				ticket: this.$store.state.ticket
+			}).then(res => {
+				console.log(res.data.list)
+				if(res.data != undefined) this.my_message_list = res.data.list;
+			});
+		}
+	}
+</script>
+
+<style lang="less">
+	.my-message-wrap:after,
+	.my-message-main:after,
+	.my-message-main-right:after {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.my-message-fixed {
+		width: 90%;
+		left: 5%;
+		position: fixed;
+		top: 47px;
+		background-color: #FFFFFF;
+	}
+	
+	.my-message {
+		width: 90%;
+		margin: 35px auto 0;
+		padding: 1rem 0;
+		.my-message-main {
+			padding: 1rem 0;
+			p {
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				padding: 0.3rem 0;
+			}
+			.my-message-main-left,
+			.my-message-main-center,
+			.my-message-main-right {
+				float: left;
+			}
+			.my-message-title {
+				font-size: 1.2rem;
+			}
+			.my-message-content {
+				color: #CCCCCC;
+			}
+			.my-message-main-left {
+				width: 15%;
+				img {
+					width: 100%;
+					border-radius: 50%;
+				}
+			}
+			.my-message-main-center {
+				width: 40%;
+				padding-left: 5%;
+				span {
+					color: orange;
+				}
+			}
+			.my-message-main-right {
+				width: 35%;
+				padding-left: 5%;
+			}
+		}
+	}
+</style>

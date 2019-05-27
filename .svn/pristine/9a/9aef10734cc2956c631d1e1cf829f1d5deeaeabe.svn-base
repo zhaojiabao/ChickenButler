@@ -1,0 +1,281 @@
+<template>
+	<!--此页面为发帖详情页-->
+	<div class="postcontainer">
+		<div class="postcontainer-top">
+			<input type="text" placeholder="请输入您要发布的标题(20个字以内)" v-model="post.title" />
+			<textarea name="" rows="6" cols="" v-model="post.content" placeholder="请输入内容"></textarea>
+			<div>
+				<div class="weui-cell__hd">
+					<ul class="weui-uploader__files">
+						<li class="weui-uploader__file" v-for="(pic,index) in imglist" :style="'background-image:url('+pic+')'">
+							<img @click="updownClick(index)" id="updawnimg" src="../../assets/close.png" alt="" />
+						</li>
+					</ul>
+					<div class="weui-uploader__input-box">
+						<input class="weui-uploader__input" type="file" name="file" accept="image/*" multiple="" @change="upload">
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="postcontainer-center" v-if="this.$route.params.type==2">
+			<span>选择悬赏积蛋:</span>
+			<select name="egg" v-model="prize_scores">
+				<option value="5">5积蛋</option>
+				<option value="10">10积蛋</option>
+				<option value="20">20积蛋</option>
+			</select>
+		</div>
+		<div class="postcontainer-bottom">
+			<p class="addtag">添加标签</p>
+			<ul>
+				<li v-for="(tag,index) in tag_list" :class="{'selected':post.tag_id.indexOf(tag.id) > -1}" @click="selectTag(tag.id)"><span>{{tag.name}}</span></li>
+			</ul>
+		</div>
+		<p class="postcontainer-bottom-tishi">温馨提示:请认真选择标签,有利于您更快的获得精准信息</p>
+		<div class="post-click">
+			<button @click="submitPost">发帖</button>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { submitPost, getQiniuSign, uploadImg, myTag } from '../../api/api'
+	const domain = 'https://img.jianong.com/';
+	import { Group, PopupRadio } from 'vux'
+	export default {
+		components: {
+			Group,
+			PopupRadio
+		},
+		data() {
+			return {
+				post: {
+					title: '',
+					content: '',
+					prize_scores: 0,
+					tag_id: []
+				},
+				imglist: [],
+				tag_list: [],
+				prize_scores: 5,
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "发帖";
+			this.$store.state.header.right_title = "";
+			myTag().then(res => {
+				this.tag_list = res.data.tag;
+			})
+			this.$wechat.ready(() => {
+				var title = '蛋鸡管家 - 全球蛋鸡产业信息化平台';
+				var link = window.location.href;
+				var imgUrl = 'https://api.danjiguanjia.com/public/icon120.png';
+				this.$wechat.onMenuShareTimeline({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareAppMessage({
+					title: title,
+					desc: '关注蛋鸡管家,随时掌握最新行情信息!',
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareQQ({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareWeibo({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+			});
+
+		},
+		methods: {
+			submitPost() {
+				if(this.post.title == '') {
+					this.$vux.toast.text("标题不能为空!");
+					return false;
+				}
+				if(this.post.title.length < 10) {
+					this.$vux.toast.text("标题不得少于10个字!");
+					return false;
+				}
+				if(this.post.title.length > 20) {
+					this.$vux.toast.text("标题不得多于20个字!");
+					return false;
+				}
+				if(this.post.tag_id.length == 0) {
+					this.$vux.toast.text("请您先添加标签!");
+					return false;
+				}
+
+				submitPost({
+					ticket: this.$store.state.ticket,
+					type: this.$route.params.type,
+					circle_id: this.$route.params.circle_id,
+					tag_id: this.post.tag_id,
+					sign: 'text',
+					title: this.post.title,
+					h5_img: this.imglist,
+					prize_scores: this.prize_scores,
+					content: this.post.content
+				}).then(res => {
+					console.log(this.imglist)
+					if(res.retcode == "2000") {
+						this.$router.push('/p/forum-list/4')
+					} else {
+						this.$vux.toast.text(res.msg);
+					}
+				})
+			},
+			selectTag(id) {
+				if(this.post.tag_id.length > 1) this.post.tag_id.splice(0, 1);
+				this.post.tag_id.push(id);
+			},
+			upload(e) {
+				if(e.target.files[0] == undefined) {
+					return false;
+				}
+				this.$vux.loading.show({
+					text: '图片上传中，请稍等...'
+				})
+				getQiniuSign().then(rs => {
+					uploadImg({
+						file: e,
+						token: rs.data
+					}).then(rs => {
+						this.imglist.push(domain + rs.key);
+						this.$vux.loading.hide();
+						console.log(this.imglist)
+					})
+				})
+			},
+			updownClick(index) {
+				var _this = this;
+				this.$vux.confirm.show({
+					title: '您是否确认删除该图片?',
+					onCancel() {},
+					onConfirm() {
+						_this.imglist.splice(index, 1);
+					}
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped="scoped">
+	.postcontainer-bottom:after {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.weui-uploader__file {
+		position: relative;
+	}
+	
+	.postcontainer {
+		padding: 1rem 0;
+		width: 90%;
+		margin: 0 auto;
+		input {
+			width: 100%;
+		}
+		textarea {
+			width: 100%;
+			margin: 1rem 0;
+			padding: 0.5rem 0 0.5rem 0.5rem;
+		}
+		.postcontainer-top {
+			input {
+				font-size: 1.1rem;
+				padding: 0.5rem 0 0.5rem 0.5rem;
+				border: 1px solid #CCCCCC;
+			}
+			#updawnimg {
+				position: absolute;
+				display: inline-block;
+				width: 1rem;
+				height: 1rem;
+				top: -0.5rem;
+				right: -0.5rem;
+				border: 1px solid #000000;
+				border-radius: 50%;
+				padding: 0.2rem;
+			}
+			textarea {
+				font-size: 1.1rem;
+				border-color: #CCCCCC;
+			}
+			img {
+				display: inline-block;
+				width: 20%;
+			}
+		}
+		.postcontainer-center {
+			p,
+			span {
+				font-size: 1.1rem;
+			}
+			position: absolute;
+			margin-top: 88px;
+			select {
+				color: #FCC81D;
+			}
+		}
+		.post-click {
+			button {
+				width: 35%;
+				height: 2.5rem;
+				color: #FFFFFF;
+				background-color: #57B663;
+				font-size: 1.3rem;
+				border: none;
+				border-radius: 5rem;
+				margin-left: 32.5%;
+				margin-top: 5%;
+				outline: none;
+			}
+		}
+		.postcontainer-bottom {
+			margin-top: 8.5rem;
+			border-top: 5px solid #F8F8FF;
+			p {
+				padding: 1rem 0;
+			}
+			.addtag {
+				font-size: 1.5rem;
+			}
+			ul li {
+				margin: 0.5rem 0.35rem;
+				text-align: center;
+				float: left;
+				width: 20%;
+				padding: 0.3rem 0;
+				border: 1px solid #CCCCCC;
+				border-radius: 5px;
+				color: #CCCCCC;
+			}
+			ul li:visited {
+				background: #57B663;
+			}
+			.selected {
+				color: #FFFFFF;
+				background-color: #57B663;
+				border: 1px solid #FFFFFF;
+			}
+			.weui-cell_access .weui-cell__ft {
+				position: absolute;
+				padding-left: 100px;
+			}
+		}
+		.postcontainer-bottom-tishi {
+			padding: 1rem 0;
+		}
+	}
+</style>

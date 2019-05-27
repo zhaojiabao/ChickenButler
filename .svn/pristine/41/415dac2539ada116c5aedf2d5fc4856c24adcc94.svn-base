@@ -1,0 +1,206 @@
+<template>
+	<div class="manager-view">
+		<swiper :list="banner_list" height="150px" v-model="banner_index" :show-dots="false" dots-position="center" :show-desc-mask="false" :loop="true"></swiper>
+		<div>
+			<grid :rows="4">
+				<grid-item link="/p/breed-class" label="养殖课堂" >
+					<img slot="icon" src="../assets/mvketang.png">
+				</grid-item>
+				<grid-item link="/p/chicken-house" label="走进鸡场" >
+					<img slot="icon" src="../assets/mvjichang.png">
+				</grid-item>
+				<grid-item link="/p/teacher" label="金牌名师" >
+					<img slot="icon" src="../assets/mvteacher.png">
+				</grid-item>
+				<grid-item link="/p/short-video" label="短视频" >
+					<img slot="icon" src="../assets/mvvideo.png">
+				</grid-item>
+			</grid>
+		</div>
+
+		<div class="mv-video">
+			<p class="hot">热门推荐</p>
+			<ul>
+				<li v-for="manager in manager_list" @click="managerClick(manager.v_id)">
+					<div class="mv-pic">
+						<img class="mv-cover" :src="manager.cover" alt="" />
+						<img class="mv-teach-cover" :src="manager.teach_cover" alt="" />
+					</div>
+					<p class="mv-title">{{manager.title}}</p>
+					<p class="mv-description">{{manager.description}}</p>
+					<p class="view-num"><span><i><img src="../assets/videoplay.png" alt="" /></i> {{manager.view}}</span> <span class="collect-num"><i><img src="../assets/videoshoucang.png" alt="" /></i> {{manager.collect_num}}</span></p>
+				</li>
+			</ul>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { Grid, GridItem,Swiper } from 'vux'
+	import { videoHot,videoBanner } from '../api/api'
+	export default {
+		components: {
+			Grid,
+			GridItem,
+			Swiper
+		},
+		data() {
+			return {
+				mv_list: [{
+						title: '养殖课堂',
+						img: '../assets/mvketang.png',
+						path: '/p/breedclass'
+					},
+					{
+						title: '走进鸡场',
+						img: 'https://img.jianong.com/danjiaditu1@2x.png',
+						path: '/p/chickenhouse'
+
+					},
+					{
+						title: '金牌名师',
+						img: 'https://img.jianong.com/danjiaditu1@2x.png',
+						path: '/p/teacher'
+					},
+					{
+						title: '短视频',
+						img: 'https://img.jianong.com/danjiaditu1@2x.png',
+						path: '/p/shortvideo'
+					}
+				],
+				manager_list: [],
+				banner_list:[],
+				banner_index:0
+				
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "管家视界"
+			this.$store.state.header.right_title = ""
+			videoHot({
+				ticket: this.$store.state.ticket
+			}).then(res => {
+				if(this.$store.state.ticket == null) {
+					this.$router.push('/p/login')
+				} else {
+					this.manager_list = res.data.data;
+				}
+			});
+			videoBanner().then(rs => {
+				for(var i = 0; i < rs.data.banner.length; i++) {
+					this.banner_list.push({
+						url: "/p/news/detail/"+rs.data.banner[i].url.replace(/[^0-9]+/g, ''),
+						img: rs.data.banner[i].cover
+					});
+				}
+			});
+		},
+		methods: {
+			managerClick(id){
+				this.$router.push('/p/video/detail/'+id);
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	.manager-view {
+		.mv-img {
+			img {
+				width: 100%;
+			}
+		}
+		.mv-video {
+			.hot {
+				padding: 1rem;
+				color: #57B663;
+				font-size: 1.2rem;
+				border-top: 0.5rem solid #F8F8FF;
+			}
+			ul li {
+				width: 49.5%;
+				float: left;
+				margin: 0.2rem 0;
+			}
+			ul li:nth-child(2n) {
+				margin-left: 1%;
+			}
+			.mv-pic {
+				position: relative;
+				.mv-cover {
+					width: 100%;
+					height: 8rem;
+				}
+				.mv-teach-cover {
+					width: 3.5rem;
+					height: 3.5rem;
+					border-radius: 50%;
+					position: absolute;
+					left: 1rem;
+					bottom: -1.75rem;
+				}
+			}
+			p {
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+			}
+			.mv-title {
+				padding-left: 5rem;
+				font-size: 1.2rem;
+			}
+			.mv-description {
+				color: #CCCCCC;
+				padding: 0.3rem 0 0 1rem;
+			}
+			.view-num {
+				padding: 0.5rem 0;
+				color: #CCCCCC;
+				span {
+					padding-left:1rem;
+					i {
+						display: inline-block;
+						width: 1rem;
+						height: 1rem;
+						img {
+							width: 100%;
+						}
+					}
+				}
+				.collect-num {
+					float: right;
+					padding-right: 2rem;
+				}
+			}
+		}
+		.weui-grids {
+			padding-top:0.5rem; 
+			&:before {
+				border: none;
+			}
+			.weui-grid {
+				padding: 5px 10px;
+				&:before {
+					border: none;
+				}
+				&:after {
+					border: none;
+				}
+				p {
+					color: #333333;
+				}
+			}
+			.weui-grid__icon {
+				width: 45%;
+				height: auto;
+			}
+			p {
+				font-size: 14px;
+				color: #000000;
+				font-family: 微软雅黑;
+				text-align: center;
+				margin: 8px auto;
+			}
+		}
+	}
+</style>

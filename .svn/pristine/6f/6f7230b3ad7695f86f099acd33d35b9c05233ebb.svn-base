@@ -1,0 +1,222 @@
+<template>
+	<div class="my-forum">
+		<div style="padding: 1rem 0;">
+			<button-tab>
+				<button-tab-item selected @on-item-click="onItemClick">我发出的帖子</button-tab-item>
+				<button-tab-item @on-item-click="onItemClick">我参与的帖子</button-tab-item>
+				<button-tab-item @on-item-click="onItemClick">好友的帖子</button-tab-item>
+			</button-tab>
+		</div>
+
+		<scroller lock-x height="100vh" ref="scroller" bounce use-pullup v-model="loading_state" @on-pullup-loading="onPullupLoading">
+			<div class="box2" height="80vh">
+				<div class="my-forum-main" v-for="my_forum in my_forum_list" @click="forumClick(my_forum.id)">
+					<p class="title">{{my_forum.title}}</p>
+					<p v-html="urlHtmlReplace(my_forum.content)"></p>
+					<p class="cover" v-show="my_forum.cover.length > 0">
+						<img :src="cov" v-for="cov in my_forum.cover" />
+					</p>
+					<ul class="tag-img-time">
+						<li v-for="tag in my_forum.tag_id">
+							<span>{{tag}}</span>
+						</li>
+						<li>
+							<img src="../../assets/jing.png" v-if="my_forum.type==1 || my_forum.is_jing==1" />
+							<img src="../../assets/pu.png" v-else-if="my_forum.type==3" />
+							<img src="../../assets/wen.png" v-else="my_forum.type==2" />
+						</li>
+						<li> <i><img src="../../assets/time.png" /></i>
+							<span>{{my_forum.create_time}}</span>
+						</li>
+					</ul>
+					<div class="reply">
+						<span>回复{{my_forum.reply_time}}</span>
+						<span>{{my_forum.commit}}回</span>
+					</div>
+					<ul class="forum-main-ul" @click.stop>
+						<li v-if="my_forum.is_praise==0"><i><img src="https://api.danjiguanjia.com/public/image/zan.png" alt="" /></i><span>{{my_forum.praise}}</span></li>
+						<li v-else><i><img src="../../assets/zanzan.png" alt="" /></i><span class="praise">{{my_forum.praise}}</span></li>
+						<li><i><img src="https://api.danjiguanjia.com/public/image/jubao.png" alt="" /></i><span>举报</span></li>
+						<li v-if="my_forum.is_favorite==0"><i><img src="https://api.danjiguanjia.com/public/image/shoucang.png" alt="" /></i><span>{{my_forum.favorite}}</span></li>
+						<li v-else><i><img src="../../assets/shoucang.png" alt="" /></i><span class="praise">{{my_forum.favorite}}</span></li>
+					</ul>
+					<hr />
+				</div>
+			</div>
+		</scroller>
+	</div>
+</template>
+<script>
+	import { ButtonTab, ButtonTabItem, Scroller } from 'vux'
+	import { myForumList } from "../../api/api"
+
+	export default {
+		components: {
+			ButtonTab,
+			ButtonTabItem,
+			Scroller
+		},
+		data() {
+			return {
+				my_forum_list: [],
+				types: [1, 2, 3],
+				scroller: true,
+				page: 1,
+				loading_state: { //scroller组件的加载状态
+					pullupStatus: 'default'
+				}
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "我的论坛"
+			this.$store.state.header.right_title = "我的消息";
+			this.$store.state.header.right_url = "/p/mymessage";
+			this.type = this.types[0]
+			myForumList({
+				type: this.type,
+				ticket: this.$store.state.ticket
+			}).then(res => {
+				if(this.$store.state.ticket == null) {
+					this.$router.push('/p/login')
+				} else {
+					this.my_forum_list = res.data.res;
+				}
+			});
+		},
+		methods: {
+			onItemClick(index) {
+				this.page = 1;
+				this.my_forum_list = [];
+				this.type = this.types[index];
+				myForumList({
+					type: this.type,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					this.my_forum_list = res.data.res;
+					this.$refs.scroller.reset({
+						top: 0
+					})
+				});
+			},
+			onPullupLoading() {
+				this.page++;
+				myForumList({
+					type: this.type,
+					page: this.page,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					for(var i = 0; i < res.data.res.length; i++) {
+						this.my_forum_list.push(res.data.res[i]);
+					}
+					this.loading_state.pullupStatus = 'default'
+				});
+			},
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			forumClick(id){
+				this.$router.push('/p/forum/post-detail/'+id);
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.my-forum {
+		.forum-main-ul:after,
+		.reply:after,
+		ul.tag-img-time:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+		width: 90%;
+		margin: 0 auto;
+		.my-forum-main {
+			p {
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				word-break: break-all;
+			}
+			p.cover {
+				overflow: hidden;
+				img {
+					float: left;
+					width: 20%;
+					height: 5rem;
+					padding-right: 1rem;
+				}
+			}
+			p:first-child {
+				font-weight: bold;
+				text-align: center;
+				padding: 0.5rem 0;
+			}
+			ul.tag-img-time {
+				padding-top: 0.5rem;
+				li {
+					float: left;
+					width: 33.33%;
+				}
+				li:first-child {
+					span {
+						border: 1px solid #CCCCCC;
+						color: #CCCCCC;
+						padding: 0rem 0.5rem;
+						border-radius: 5px;
+						float: left;
+					}
+				}
+				li:nth-child(2) {
+					text-align: center;
+				}
+				li:last-child {
+					text-align: right;
+					color: orange;
+				}
+			}
+			.reply {
+				span:first-child {
+					float: left;
+				}
+				span:last-child {
+					float: right;
+				}
+			}
+			.forum-main-ul {
+				padding-top: 0.5rem;
+				.praise{
+					color: #FF0000;
+				}
+			}
+			.forum-main-ul li {
+				float: left;
+				width: 33%;
+				i {
+					display: inline-block;
+					width: 1rem;
+					height: 0.3rem;
+					img {
+						width: 100%;
+					}
+				}
+				span {
+					padding-left: 0.5rem;
+				}
+			}
+			.forum-main-ul li:nth-child(2) {
+				text-align: center;
+			}
+			.forum-main-ul li:last-child {
+				text-align: right;
+			}
+			
+		}
+	}
+</style>

@@ -1,0 +1,492 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+
+import Layout from '@/views/common/layout' //公共组件
+
+//const Login = r => require.ensure([], () => r(require('@/components/Login')), 'user_com')//登录页面
+//const SanLogin = r => require.ensure([], () => r(require('@/views/login/SanLogin')), 'user_com')//第三方登录
+//const FindPassword = r => require.ensure([], () => r(require('@/views/login/FindPassword')), 'user_com')//找回密码
+//const Index = r => require.ensure([], () => r(require('@/components/Index')), 'user_com')//首页
+import Index from '@/components/Index' //首页
+import FindPassword from '@/views/login/FindPassword'//找回密码
+import SanLogin from '@/views/login/SanLogin'//第三方登录
+import Login from '@/components/Login' //登录页面
+import Hello from '@/components/Hello'
+
+
+//蛋价查询
+//const EggPrice = r => require.ensure([], () => r(require('@/components/EggPrice')), 'egg')//蛋价首页
+//const SearchResult = r => require.ensure([], () => r(require('@/views/eggprice/SearchResult')), 'egg')//搜索结果
+//const PriceForecast = r => require.ensure([], () => r(require('@/views/eggprice/Forecast-Price')), 'egg')//蛋价预测
+//const ForecastRecord = r => require.ensure([], () => r(require('@/views/eggprice/Forecast-Record')), 'egg')//预测记录
+//const ForecastActive = r => require.ensure([], () => r(require('@/views/eggprice/Forecast-Active')), 'egg')//预测活动
+//const PriceChart = r => require.ensure([], () => r(require('@/views/eggprice/Chart-Price')), 'egg')//价格曲线
+//const MaterialChart = r => require.ensure([], () => r(require('@/views/eggprice/Chart-Material')), 'egg')//原料曲线
+//const CullChickChart = r => require.ensure([], () => r(require('@/views/eggprice/Chart-CullChick')), 'egg')//淘汰鸡曲线
+//const EggPriceSearch = r => require.ensure([], () => r(require('@/views/eggprice/EggPriceSearch')), 'egg')//egg查询页面
+
+import EggPrice from '@/components/EggPrice' //蛋价首页
+import SearchResult from '@/views/eggprice/SearchResult' //搜索结果
+import PriceForecast from '@/views/eggprice/Forecast-Price' //蛋价预测
+import ForecastRecord from '@/views/eggprice/Forecast-Record' //预测记录
+import ForecastActive from '@/views/eggprice/Forecast-Active' //预测活动
+import PriceChart from '@/views/eggprice/Chart-Price' //价格曲线
+import MaterialChart from '@/views/eggprice/Chart-Material' //原料曲线
+import CullChickChart from '@/views/eggprice/Chart-CullChick' //淘汰鸡曲线
+import EggPriceSearch from '@/views/eggprice/EggPriceSearch' //egg查询页面
+
+//资讯
+//const News = r => require.ensure([], () => r(require('@/components/News')), 'news_com')//首页
+//const NewsDetail = r => require.ensure([], () => r(require('@/views/news/NewsDetail')), 'news_com')//详情
+import News from '@/components/News'
+import NewsDetail from '@/views/news/NewsDetail'
+
+
+//论坛
+//const Forum = r => require.ensure([], () => r(require('@/components/Forum')), 'forum_com') //论坛首页
+//const PostDetail = r => require.ensure([], () => r(require('@/views/forum/PostDetail')), 'forum_com') //帖子详情
+//const ForumList = r => require.ensure([], () => r(require('@/views/forum/ForumList')), 'forum_com')//帖子列表
+//const MyForum = r => require.ensure([], () => r(require('@/views/forum/MyForum')), 'forum_com')	//我的论坛
+//const MyMessage = r => require.ensure([], () => r(require('@/views/forum/MyMessage')), 'forum_com')	//我的消息
+//const CircleDetail = r => require.ensure([], () => r(require('@/views/forum/CircleDetail')), 'forum_com')	//圈子详情
+//const PostCircleList = r => require.ensure([], () => r(require('@/views/forum/PostCircleList')), 'forum_com')	//发帖前圈子列表
+//const PostContainer = r => require.ensure([], () => r(require('@/views/forum/PostContainer')), 'forum_com') //发帖页面
+//const BannerDetail = r => require.ensure([], () => r(require('@/views/news/BannerDetail')), 'forum_com') //首页banner详情
+//const BuildCircle = r => require.ensure([], () => r(require('@/views/forum/BuildCircle')), 'forum_com') //创建圈子
+//const DelCircle = r => require.ensure([], () => r(require('@/views/forum/DelCircle')), 'forum_com') //删除圈子
+import Forum from '@/components/Forum'
+import PostDetail from '@/views/forum/PostDetail'
+import ForumList from '@/views/forum/ForumList'
+import MyForum from '@/views/forum/MyForum'
+import MyMessage from '@/views/forum/MyMessage'
+import CircleDetail from '@/views/forum/CircleDetail'
+import PostCircleList from '@/views/forum/PostCircleList'
+import PostContainer from '@/views/forum/PostContainer'
+import BannerDetail from '@/views/news/BannerDetail'
+import BuildCircle from '@/views/forum/BuildCircle'
+import DelCircle from '@/views/forum/DelCircle'
+
+
+//管家视界
+//const ManagerView = r => require.ensure([], () => r(require('@/components/ManagerView')), 'managerview_com')//首页
+//const BreedClass = r => require.ensure([], () => r(require('@/views/managerview/BreedClass')), 'managerview_com')//养殖课堂
+//const ChickenHouse = r => require.ensure([], () => r(require('@/views/managerview/ChickenHouse')), 'managerview_com') //走进鸡场
+//const Teacher = r => require.ensure([], () => r(require('@/views/managerview/Teacher')), 'managerview_com')//金牌名师
+//const ShortVideo = r => require.ensure([], () => r(require('@/views/managerview/ShortVideo')), 'managerview_com')//短视频
+//const VideoDetail = r => require.ensure([], () => r(require('@/views/managerview/VideoDetail')), 'managerview_com')//视频详情
+//const TeacherDetail = r => require.ensure([], () => r(require('@/views/managerview/TeacherDetail')), 'managerview_com')//讲师详情
+//const ChickenDetail = r => require.ensure([], () => r(require('@/views/managerview/ChickenDetail')), 'managerview_com')//鸡场详情
+
+import ManagerView from  '@/components/ManagerView'
+import BreedClass from  '@/views/managerview/BreedClass'
+import ChickenHouse from  '@/views/managerview/ChickenHouse'
+import Teacher from  '@/views/managerview/Teacher'
+import ShortVideo from  '@/views/managerview/ShortVideo'
+import VideoDetail from  '@/views/managerview/VideoDetail'
+import TeacherDetail from  '@/views/managerview/TeacherDetail'
+import ChickenDetail from  '@/views/managerview/ChickenDetail'
+
+//活动页面
+//const PB_coolSummer = r => require.ensure([], () => r(require('@/views/active/PB_coolSummer')), 'play_com')//清凉一夏
+//const PB_autumn = r => require.ensure([], () => r(require('@/views/active/PB_autumn')), 'play_com')////迎秋送暑
+//const PB_autumn_lotty = r => require.ensure([], () => r(require('@/views/active/PB_autumn_lotty')), 'play_com')////迎秋送暑
+import PB_coolSummer from '@/views/active/PB_coolSummer' //清凉一夏
+import PB_autumn from '@/views/active/PB_autumn' //迎秋送暑
+import PB_autumn_lotty from '@/views/active/PB_autumn_lotty' //迎秋送暑
+
+//个人中心
+//const CooperationIndex = r => require.ensure([], () => r(require('@/views/personal/business/CooperationIndex')), 'cooper_com')// 商业合作首页
+//const CooperationCompanyInfo = r => require.ensure([], () => r(require('@/views/personal/business/CooperationCompanyInfo')), 'cooper_com')// 商家信息
+//const CooperationSuccess = r => require.ensure([], () => r(require('@/views/personal/business/CooperationSuccess')), 'cooper_com')// 提交成功
+import CooperationIndex from '@/views/personal/business/CooperationIndex' // 商业合作首页
+import CooperationCompanyInfo from '@/views/personal/business/CooperationCompanyInfo' // 商家信息
+import CooperationSuccess from '@/views/personal/business/CooperationSuccess' // 提交成功
+
+//活动中心
+//const ActiveCenter = r => require.ensure([], () => r(require('@/components/ActiveCenter')), 'active_com')// 活动中心首页
+//const MoreActive = r => require.ensure([], () => r(require('@/views/active/MoreActive')), 'active_com')// 更多活动
+//const ActiveDetail = r => require.ensure([], () => r(require('@/views/news/ActiveDetail')), 'active_com')// 更多活动
+//const GroupIndex = r => require.ensure([], () => r(require('@/views/group/GroupIndex')), 'active_com')// 团购首页
+//const GroupGoodsDetail = r => require.ensure([], () => r(require('@/views/group/GoodsDetail')), 'seck_com')//团购商品详情
+//const SeckillIndex = r => require.ensure([], () => r(require('@/views/seckill/SeckillIndex')), 'active_com')//秒杀首页
+//const SeckillGoodsDetail = r => require.ensure([], () => r(require('@/views/seckill/GoodsDetail')), 'seck_com')//秒杀商品详情
+
+import ActiveCenter from '@/components/ActiveCenter'
+import MoreActive from '@/views/active/MoreActive'
+import ActiveDetail from '@/views/news/ActiveDetail'
+import GroupIndex from '@/views/group/GroupIndex'
+import GroupGoodsDetail from '@/views/group/GoodsDetail'
+import SeckillIndex from '@/views/seckill/SeckillIndex'
+import SeckillGoodsDetail from '@/views/seckill/GoodsDetail'
+
+
+
+Vue.use(Router)
+
+export default new Router({
+	//mode: 'history',
+	routes: [{
+			path: '/',
+			name: 'Index',
+			component: Index
+		}, {
+			path: '/hello',
+			name: 'Hello',
+			component: Hello
+		},
+		{
+			path: '/p',
+			component: Layout,
+			children: [{
+					path: 'login',
+					name: 'Login',
+					component: Login
+				}, 
+				{
+					path: 'regist',
+					name: 'regist',
+					component: Login
+				}, 
+				{
+					path: 'sanlogin',
+					name: 'sanlogin',
+					component: SanLogin
+				}, 
+				{
+					path: 'findpassword',
+					name: 'FindPassword',
+					component: FindPassword
+				},
+				/**
+				 * 蛋价查询模块
+				 * @pages 首页    	FindPassword  
+				 */
+				{
+					path: 'egg-price',
+					name: 'EggPrice',
+					component: EggPrice
+				}, {
+					path: 'search-result/:area',
+					name: 'SearchResult',
+					component: SearchResult
+				}, {
+					path: 'price-forecast',
+					name: 'PriceForecast',
+					component: PriceForecast
+				}, {
+					path: 'forecast-record',
+					name: 'ForecastRecord',
+					component: ForecastRecord
+				}, {
+					path: 'forecast-active',
+					name: 'ForecastActive',
+					component: ForecastActive
+				}, {
+					path: 'price-chart',
+					name: 'PriceChart',
+					component: PriceChart
+				}, {
+					path: 'material-chart',
+					name: 'MaterialChart',
+					component: MaterialChart
+				}, {
+					path: 'cull-chick-chart',
+					name: 'CullChickChart',
+					component: CullChickChart
+				},
+				/**
+				 * 团购模块
+				 * @pages 商品详情    	  
+				 */
+				{
+					path: 'group/goods-detail/:good_id',
+					name: 'group-goods-detail',
+					component: GroupGoodsDetail
+				},
+				/**
+				 * banner详情
+				 * @pages  
+				 */
+				{
+					path: 'banner-detail/:ban_id',
+					name: 'banner-detail',
+					component: BannerDetail
+				}
+				,
+				/**
+				 * 资讯模块
+				 * @pages  资讯首页 	  
+				 */
+				{
+					path: 'news',
+					name: 'news',
+					component: News
+				},
+				/**
+				 * 资讯模块
+				 * @pages 咨询详情页  
+				 */
+				{
+					path: 'news/detail/:news_id',
+					name: 'news-detail',
+					component: NewsDetail
+				},
+				/**
+				 *管家视界首页 
+				 */
+				{
+					path: 'managerview',
+					name: 'managerview',
+					component: ManagerView
+				},
+				/**
+				 * 管家视界
+				 * 走进鸡场
+				 */
+				{
+					path: 'chicken-house',
+					name: 'chicken-house',
+					component: ChickenHouse
+				},
+				/**
+				 * 管家视界
+				 * 养殖课堂
+				 */
+				{
+					path: 'breed-class',
+					name: 'breed-class',
+					component: BreedClass
+				},
+				/**
+				 * 管家视界
+				 * 金牌名师
+				 */
+				{
+					path: 'teacher',
+					name: 'teacher',
+					component: Teacher
+				},
+				/**
+				 * 管家视界
+				 * 短视频
+				 */
+				{
+					path: 'short-video',
+					name: 'short-video',
+					component: ShortVideo
+				},
+				/**
+				 * 管家视界
+				 * 视频详情
+				 */
+				{
+					path: 'video/detail/:video_id',
+					name: 'video-detail',
+					component: VideoDetail
+				},
+				/**
+				 * 管家视界
+				 * 讲师详情
+				 */
+				{
+					path: 'teacher/detail/:teacher_id',
+					name: 'teacher-detail',
+					component: TeacherDetail
+				},
+				/**
+				 * 管家视界
+				 * 鸡场详情
+				 */
+				{
+					path: 'chickend/detail/:chicken_id',
+					name: 'chicken-detail',
+					component: ChickenDetail
+				},
+				/**
+				 * 论坛模块
+				 * @pages 帖子详情     
+				 */
+				{ // 帖子详情
+					path: 'forum/post-detail/:post_id',
+					name: 'post-detail',
+					component: PostDetail
+				},
+				/**
+				 * 论坛模块
+				 * @pages 帖子列表 
+				 */
+				{
+					path: 'forum-list/:index',
+					name: 'ForumList',
+					component: ForumList
+				},
+				/**
+				 * 论坛模块
+				 * @pages 我的论坛	  
+				 */
+				{
+					path: 'myforum',
+					name: 'myforum',
+					component: MyForum
+				},
+				/**
+				 * 论坛模块
+				 * @pages 我的消息	  CircleDetail
+				 */
+				{
+					path: 'mymessage',
+					name: 'mymessage',
+					component: MyMessage
+				},
+				/**
+				 * 论坛模块
+				 * @pages 圈子列表	  
+				 */
+				{
+					path: 'circle/detail/:circle_id',
+					name: 'circle-detail',
+					component: CircleDetail
+				},
+				/**
+				 * 论坛模块
+				 * @pages 创建圈子	
+				 */
+				{
+					path: 'buildcircle',
+					name: 'buildcircle',
+					component: BuildCircle
+				},
+				/**
+				 * 论坛模块
+				 * @pages 删除圈子
+				 */
+				{
+					path: 'delcircle/:delcircle_id',
+					name: 'DelCircle',
+					component: DelCircle
+				},
+				/**
+				 * 个人中心商业合作
+				 * @pages 首页    企业信息 	  
+				 */
+				{
+					path: 'cooperation-index',
+					name: 'CooperationIndex',
+					component: CooperationIndex
+				},
+				{
+					path: 'cooperation-company-info',
+					name: 'CooperationCompanyInfo',
+					component: CooperationCompanyInfo
+				},
+				{
+					path: 'cooperation-success/:id',
+					name: 'CooperationSuccess',
+					component: CooperationSuccess
+				},
+				/**
+				 * 论坛模块
+				 * @pages 论坛首页
+				 */
+				{
+					path: 'forum',
+					name: 'forum',
+					component: Forum
+				},
+				/**
+				 * 论坛模块
+				 * @pages 发帖
+				 */
+				{
+					path: 'post/container/:type/:circle_id',
+					name: 'post-container',
+					component: PostContainer
+				},
+				/**
+				 * 论坛模块
+				 * @pages 发帖前圈子的列表 
+				 */
+				{
+					path: 'postcircleList/:type',
+					name: 'postcircleList',
+					component: PostCircleList
+				},
+				/**
+				 * 蛋价模块
+				 * @pages  egg查询页面MaterialPriceSearch.vue
+				 */
+				{
+					path: 'eggpricesearch',
+					name: 'EggPriceSearch',
+					component: EggPriceSearch
+				},
+				/**
+				 * 活动中心
+				 * @pages  首页 
+				 */
+				{
+					path: 'activecenter',
+					name: 'ActiveCenter',
+					component: ActiveCenter
+				},
+				/**
+				 * 活动中心
+				 * @pages  更多活动 ActiveDetail
+				 */
+				{
+					path: 'moreactive',
+					name: 'MoreActive',
+					component: MoreActive
+				},
+				/**
+				 * 活动中心
+				 * @pages  活动详情页  GroupIndex.vue
+				 */
+				{
+					path: 'active-detail/:active_id',
+					name: 'ActiveDetail',
+					component: ActiveDetail
+				},
+				/**
+				 * 活动中心
+				 * @pages  团购首页  GroupIndex
+				 */
+				{
+					path: 'groupindex',
+					name: 'GroupIndex',
+					component: GroupIndex
+				},
+				/**
+				 * 活动中心
+				 * @pages 秒杀模块  商品详情    	  
+				 */
+				{
+					path: 'seckill/goods-detail/:time_id/:good_id',
+					name: 'seckill-goods-detail',
+					component: SeckillGoodsDetail
+				},
+				/**
+				 * 活动中心
+				 * @pages 秒杀模块  秒杀首页    	  
+				 */
+				{
+					path: 'seckillindex',
+					name: 'SeckillIndex',
+					component: SeckillIndex
+				}
+			]
+		}, {
+			path: '/cool-summer',
+			name: 'CoolSummer',
+			component: PB_coolSummer
+		}, {
+			path: '/autumn',
+			name: 'PBAutumn',
+			component: PB_autumn_lotty
+		}, {
+			path: '/pb_autumn',
+			name: 'PB_autumn_lotty',
+			component: PB_autumn_lotty
+		}
+	]
+})

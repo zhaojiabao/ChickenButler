@@ -1,0 +1,609 @@
+<template>
+	<div class="cricle-detail">
+		<div class="circle-main-warp">
+			<div class="circle-main">
+				<div class="circle-main-left">
+					<img class="circlepic" :src="data_circle.image" />
+				</div>
+				<div class="circle-main-right">
+					<p>{{data_circle.name}}</p>
+					<p class="circle-main-right-info">{{data_circle.info}}</p>
+					<img src="" alt="" />
+				</div>
+			</div>
+		</div>
+		<div class="circle-main-warp">
+			<div class="circle-top" v-for="data in data_top">
+				<p>
+					<img src="../../assets/jing.png" alt="" v-if="data.type == 1 || data.is_jing== 1" />
+					<img src="../../assets/wen.png" alt="" v-else-if="data.type == 2" />
+					<img src="../../assets/pu.png" alt="" v-else="data.type == 3" />
+					<span class="data-title"> {{data.title}}</span><span class="data-top">置顶</span>
+				</p>
+			</div>
+		</div>
+
+		<div class="circle-main-warp">
+			<div class="forum-list" v-for="forum in forum_list" @click="forumClick(forum.id)">
+				<div class="forum-main">
+					<div class="forum-main-left">
+						<div class="forum-main-left-img">
+							<img class="nick-img" :src="forum.portrait" alt="" />
+							<i>
+									<img class="img-ab" src="../../assets/jing.png" alt="" v-if="forum.type == 1 || forum.is_jing== 1" />
+									<img class="img-ab" src="../../assets/wen.png" alt="" v-else-if="forum.type == 2" />
+									<img class="img-ab" src="../../assets/pu.png" alt="" v-else="forum.type == 3" />
+									</i>
+						</div>
+						<p class="user-name">{{forum.nickname}}</p>
+					</div>
+					<div class="forum-main-right">
+						<div class="title-time">
+							<span>{{forum.title}}</span>
+							<span> <i><img src="../../assets/time.png"/></i> {{forum.create_time}}</span>
+						</div>
+						<p class="content" v-if="forum.sign == 'text'" v-html="urlHtmlReplace(forum.content)"></p>
+						<p class="cover" v-show="forum.cover.length > 0">
+							<img :src="cov" v-for="cov in forum.cover" />
+						</p>
+						<div class="ask-egg" v-if="forum.type==2">
+							<span>提问鸡蛋: {{forum.prize_scores}}枚</span><span class="ask" v-if="forum.is_adopt==0">提问中</span><span class="finish" v-else>已解决</span>
+						</div>
+						<p v-for="(tag,index) in forum.tag_id" v-id="index<2" class="tag">
+							<span class="state">{{tag}}</span>
+						</p>
+						<div class="reply">
+							<span>回复:{{forum.reply_time}}</span><span>{{forum.commit}}回</span>
+						</div>
+						<p>来源:</p>
+						<ul class="forum-main-ul" @click.stop>
+							<li :class="{'praise':forum.is_praise == 1}">
+								<i>
+										<img @click="isPraise(forum)"  src="../../assets/zan.png" alt="" v-if="forum.is_praise == 0" />
+										<img @click="notPraise(forum)" src="../../assets/zanzan.png" alt="" v-else />
+									</i>
+								<span>{{forum.praise}}</span>
+							</li>
+							<li>
+								<div :class="{'praise':forum.is_report == 1}">
+									<div @click="showPopupPickerFun(forum)" class="jubao" v-if="forum.is_report==0">
+										<img src="../../assets/jubao.png" alt="" />
+										<span>举报</span>
+										<popup-picker @on-hide="onHidePopup" @on-change="onChange" :show.sync="showPopupPicker" :show-cell="false" :data="[['传播谣言', '诈骗钱财', '存在侵权行为', '不适当的内容']]"></popup-picker>
+									</div>
+									<div class="jubao" v-else>
+										<img @click="cancleReport1(forum)" src="../../assets/yijubao.png" alt="" />
+										<span>已举报</span>
+									</div>
+								</div>
+							</li>
+							<li :class="{'praise':forum.is_favorite == 1}">
+								<i>
+										<img @click="isFavorite(forum)" src="../../assets/shoucang1.png" alt="" v-if="forum.is_favorite == 0" />
+										<img @click="notFavorite(forum)" src="../../assets/shoucang.png" alt="" v-else /></i>
+								</i>
+								<span>{{forum.favorite}}</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<mugen-scroll :handler="fetchData" :should-handle="!loading" scroll-container="wrap" class="loadings">
+			loading...
+		</mugen-scroll>
+
+		<div class="post-btn" v-model="post" @click="postClick">
+			<img src="../../assets/fatie.png" alt="" />
+		</div>
+		<popup v-model="post" height="100%">
+			<div class="popup-close" @click="postClickColse">
+				<img src="../../assets/close.png" alt="" />
+			</div>
+
+			<div class="post-type">
+				<div class="post-type-left">
+					<router-link to="/p/postcircleList/3">
+						<img src="../../assets/putongtie.png" alt="" />
+					</router-link>
+					<p>普通帖</p>
+				</div>
+				<div class="post-type-right">
+					<router-link to="/p/postcircleList/2">
+						<img src="../../assets/xuanshagntie.png" alt="" />
+					</router-link>
+					<p>悬赏帖</p>
+				</div>
+			</div>
+		</popup>
+	</div>
+</template>
+
+<script>
+	import { circleDetail, forumsList, favoritePost, delFavoritePost, unlikeCommunity, likeCommunity, addReport, cancleReport, circleJoin } from '../../api/api'
+	import { Scroller, Popup,PopupPicker } from 'vux'
+	import MugenScroll from 'vue-mugen-scroll'
+	export default {
+		components: {
+			Scroller,
+			Popup,
+			MugenScroll,
+			PopupPicker
+		},
+		data() {
+			return {
+				data_circle: '',
+				data_top: [],
+				forum_list: [],
+				post: false,
+				loading: false,
+				showPopupPicker: false,
+				current_post: {},
+
+			}
+		},
+		mounted() {
+			circleDetail({
+				ticket: this.$store.state.ticket,
+				circle_id: this.$route.params.circle_id,
+				page: 1
+			}).then(res => {
+				this.data_circle = res.data.circle;
+				this.forum_list = res.data.community;
+				this.data_top = res.data.top;
+				this.$store.state.header.title = this.data_circle.name;
+			})
+			this.$store.state.header.right_title = "";
+		},
+		methods: {
+			onHidePopup() {
+				this.showPopupPicker = false;
+			},
+			showPopupPickerFun(post) {
+				this.current_post = post;
+				this.showPopupPicker = true;
+			},
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			forumClick(id) {
+				this.$router.push('/p/forum/post-detail/' + id)
+			},
+			fetchData() {
+				this.page++;
+				circleDetail({
+					ticket: this.$store.state.ticket,
+					circle_id: this.$route.params.circle_id,
+					page: this.page
+				}).then(res => {
+					for(var i = 0; i < res.data.community.length; i++) {
+						this.forum_list.push(res.data.community[i]);
+					}
+				})
+			},
+			postClick() {
+				this.post = true;
+			},
+			postClickColse() {
+				this.post = false;
+			},
+			//帖子点赞
+			isPraise(forum) {
+				forum.is_praise = 1;
+				forum.praise++;
+				likeCommunity({
+					ticket: this.$store.state.ticket,
+					community_id: forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//取消帖子点赞
+			notPraise(forum) {
+				forum.is_praise = 0;
+				forum.praise--;
+				unlikeCommunity({
+					ticket: this.$store.state.ticket,
+					community_id: forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			onShow() {
+				console.log('on show')
+			},
+			onHide(type) {
+				console.log('on hide', type)
+			},
+			onChange(val) {
+				// 举报的帖子,举报内容
+				this.current_post.is_report = 1;
+				addReport({
+					ticket: this.$store.state.ticket,
+					type: 1,
+					community_id: this.current_post.id,
+					reason: val
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+
+			},
+			//收藏帖子
+			isFavorite(forum) {
+				forum.is_favorite = 1;
+				forum.favorite++;
+				favoritePost({
+					ticket: this.$store.state.ticket,
+					community_id: forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//取消收藏帖子
+			notFavorite(forum) {
+				forum.is_favorite = 0;
+				forum.favorite--;
+				delFavoritePost({
+					ticket: this.$store.state.ticket,
+					community_id: forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//取消举报
+			cancleReport1(forum) {
+				forum.is_report = 0;
+				cancleReport({
+					ticket: this.$store.state.ticket,
+					type: 1,
+					community_id: forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.showPopupPicker=false;	
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('canhus');
+					}
+				})
+			},
+			joinCircle(circle) {
+				circle.is_circle == 1;
+				location.replace(location.href);
+				circleJoin({
+					ticket: this.$store.state.ticket,
+					circle_id: circle.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+
+			}
+
+		}
+	}
+</script>
+
+<style lang="less" scoped="scoped">
+	.jubao {
+		img {
+			display: inline-block;
+			height: 1rem;
+			width: 1rem;
+		}
+	}
+	
+	.forum-main:after,
+	p:after,
+	.circle-main-right:after,
+	.circle-main:after,
+	.circle-main:before,
+	.reply:after,
+	.reply:before,
+	.state:after,
+	.title-time:after,
+	.forum-main:after {
+		content: ' ';
+		display: table;
+		clear: both;
+	}
+	
+	.loadings {
+		width: 90%;
+		margin: 0 auto;
+		text-align: center;
+	}
+	
+	.vux-popup-dialog {
+		background-color: rgba(255, 255, 255, 0.9);
+	}
+	
+	.post-btn {
+		position: fixed;
+		right: 1rem;
+		bottom: 2rem;
+		img {
+			display: block;
+			width: 4rem;
+			height: 4rem;
+			border-radius: 50%;
+		}
+		img:active {
+			filter: brightness(.5) drop-shadow(0 0 0.5rem #ccc);
+		}
+	}
+	
+	.circle-main-warp {
+		border-bottom: 3px solid #F8F8FF;
+	}
+	
+	.nick-img {
+		display: inline-block;
+		width: 4rem;
+		height: 4rem;
+		border-radius: 50%;
+	}
+	
+	.popup-close {
+		position: absolute;
+		left: 0;
+		bottom: 2rem;
+		padding-left: 48%;
+		img {
+			display: inline-block;
+			width: 1.5rem;
+			height: 1.5rem;
+		}
+	}
+	
+	.post-type {
+		text-align: center;
+		p {
+			padding: 0.5rem 0;
+		}
+		.post-type-left {
+			float: left;
+			width: 5rem;
+			padding: 110% 0 0 20%;
+			p {
+				font-size: 1rem;
+			}
+		}
+		.post-type-right {
+			width: 5rem;
+			float: right;
+			padding: 110% 20% 0 0;
+			p {
+				font-size: 1rem;
+			}
+		}
+		img {
+			display: block;
+			width: 5rem;
+			height: 5rem;
+		}
+		img:active {
+			filter: brightness(.5) drop-shadow(0 0 0.5rem #ccc);
+		}
+	}
+	
+	.circle-main {
+		width: 90%;
+		margin: 0 auto;
+		padding: 1rem 0;
+		.circle-main-left {
+			width: 15%;
+			float: left;
+			img {
+				display: inline-block;
+				height: 4rem;
+				width: 4rem;
+				border-radius: 1rem;
+			}
+		}
+		.circle-main-right {
+			width: 80%;
+			float: right;
+			.circle-main-right-left {
+				float: left;
+				width: 70%;
+			}
+			p {
+				font-size: 1.1rem;
+				padding-top: 0.3rem;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+			}
+			.join {
+				float: right;
+				margin-top: 1rem;
+				padding: 0.2rem 0.5rem;
+				border: 1px solid #57B663;
+				color: #57B663;
+			}
+			.circle-main-right-info {
+				color: #CCCCCC;
+			}
+		}
+	}
+	
+	.circle-top {
+		width: 90%;
+		margin: 0 auto;
+		p {
+			padding: 0.5rem 0;
+		}
+		img,
+		.data-title {
+			float: left;
+		}
+		.data-title {
+			padding: 0.2rem 0 0 1rem;
+		}
+		.data-top {
+			float: right;
+			color: #FF0000;
+		}
+	}
+	
+	.forum-list {
+		width: 100%;
+		border-top: 0.5rem solid #f8f8ff;
+	}
+	
+	.forum-main {
+		width: 90%;
+		margin: 0 auto;
+		padding: 1rem 0;
+		.forum-main-left {
+			width: 15%;
+			float: left;
+			.forum-main-left-img {
+				position: relative;
+				i {
+					display: inline-block;
+					width: 1.5rem;
+					height: 1.5rem;
+					position: absolute;
+					right: -0.5rem;
+					bottom: 0;
+				}
+			}
+			.user-name {
+				word-break: break-word;
+				text-align: center;
+				padding-top: 1rem;
+			}
+			.img-ab {
+				width: 100%;
+				border-radius: 50%;
+			}
+		}
+		.forum-main-right {
+			width: 80%;
+			padding-left: 5%;
+			float: right;
+			p {
+				margin: 0.5rem 0;
+			}
+			p.cover {
+				overflow: hidden;
+				img {
+					float: left;
+					width: 20%;
+					height: 5rem;
+					padding-right: 1rem;
+				}
+			}
+			p.tag {
+				overflow: hidden;
+				float: left;
+			}
+			.state {
+				/*border: 1px solid #000000;*/
+				padding: 0rem 0.5rem;
+				margin-right: 0.5rem;
+				border-radius: 5px;
+				line-height: 1.3em;
+				float: left;
+			}
+			.title-time {
+				span {
+					text-align: left;
+				}
+				span:first-child {
+					float: left;
+					width: 70%;
+					font-size: 1.3rem;
+					font-weight: bold;
+					text-overflow: ellipsis;
+					overflow: hidden;
+					white-space: nowrap;
+				}
+				span:last-child {
+					float: right;
+					text-align: right;
+					width: 30%;
+					color: orange;
+				}
+			}
+			.content {
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				word-break: break-all;
+			}
+			.ask-egg {
+				span:first-child {
+					color: #FF0000;
+					font-weight: bold;
+				}
+				.ask {
+					float: right;
+					background-color: orange;
+					border: none;
+					padding: 0.1rem 0.5rem;
+					color: #FFFFFF;
+				}
+				.finish {
+					float: right;
+					background-color: #57B663;
+					padding: 0.1rem 0.5rem;
+					color: #FFFFFF;
+				}
+			}
+			.reply {
+				span:last-child {
+					float: right;
+				}
+			}
+			.forum-main-ul li {
+				float: left;
+				width: 33%;
+				i {
+					display: inline-block;
+					width: 1rem;
+					height: 0.3rem;
+					img {
+						width: 100%;
+					}
+				}
+				span {
+					padding-left: 0.5rem;
+				}
+				.praise {
+					color: #FF0000;
+				}
+			}
+		}
+	}
+</style>

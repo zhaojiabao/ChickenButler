@@ -1,0 +1,110 @@
+<template>
+	<div class="teacher-detail">
+		<div class="cover-name" v-for="tea in teacher_detail">
+			<div class="cover-name-warp">
+				<img class="cover" :src="tea.cover" alt="" />
+				<p class="name">主讲人: {{tea.teach_name}}</p>
+			</div>
+			<p class="descript">{{tea.descript}}</p>
+			<hr />
+		</div>
+		<div class="teacher-class">
+			<p class="title">讲师课程</p>
+			<div class="main" v-for="cla in teacher_class" @click="claClick(cla.v_id)">
+				<img class="main-left" :src="cla.cover" alt="" />
+				<div class="main-right">
+					<p>{{cla.title}}</p>
+					<p>{{cla.add_time}}</p>
+					<p><img src="../../assets/videoplay.png" alt="" /> {{cla.view}}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { getOneTeachVideo } from '../../api/api'
+	export default {
+		data() {
+			return {
+				teacher_detail: [],
+				teacher_class: []
+			}
+		},
+		mounted() {
+
+			getOneTeachVideo({
+				teach_id: this.$route.params.teacher_id
+			}).then(res => {
+				this.teacher_detail = res.data.info;
+				this.teacher_class = res.data.video;
+				this.$store.state.header.title = res.data.info[0].teach_name
+			})
+		},
+		methods: {
+			claClick(id){
+				this.$router.push('/p/video/detail/'+id)
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped="scoped">
+	.main:after,
+	.cover-name-warp:after {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.teacher-detail {
+		width: 90%;
+		margin: 0 auto;
+		.cover-name {
+			.cover-name-warp {
+				width: 50%;
+				margin: 0 auto;
+				padding: 2rem;
+				.cover {
+					width: 4rem;
+					height: 4rem;
+					border-radius: 50%;
+					float: left;
+				}
+				.name {
+					float: left;
+					padding: 1.5rem 0 0 2rem;
+				}
+			}
+		}
+		.teacher-class {
+			.title {
+				text-align: center;
+				padding-bottom: 1rem;
+			}
+			.main {
+				padding-bottom: 1rem;
+				.main-left {
+					width: 40%;
+					float: left;
+				}
+				.main-right {
+					float: right;
+					width: 55%;
+					padding-left: 5%;
+					p {
+						text-overflow: ellipsis;
+						overflow: hidden;
+						white-space: nowrap;
+						padding: 0.3rem 0;
+						img {
+							display: inline-block;
+							width: 1rem;
+							height: 1rem;
+						}
+					}
+				}
+			}
+		}
+	}
+</style>

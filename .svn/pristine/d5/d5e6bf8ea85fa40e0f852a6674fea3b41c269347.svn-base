@@ -1,0 +1,44 @@
+<template>
+	<div class="seckill">
+		秒杀首页
+	</div>
+</template>
+
+<script>
+	import { Swiper  } from 'vux'	
+	import { goodsDetail } from '../api/seckill'
+	export default {
+		components: {
+			Swiper
+		},
+		data() {
+			return {
+				
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '商品详情';
+			
+			/*goodsDetail({
+				time_id:this.$route.params.time_id,
+				good_id:this.$route.params.good_id
+			}).then(rs=>{
+				console.log(rs)
+			})*/
+		},
+		watch: {
+			
+		},
+		methods: {
+			
+		}
+	}
+</script>
+
+<style lang="less">
+	.seckill{
+		
+		
+		
+	}
+</style>

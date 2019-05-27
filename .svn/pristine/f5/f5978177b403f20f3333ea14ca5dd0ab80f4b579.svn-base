@@ -1,0 +1,5 @@
+export const config = {
+	
+	base_url:'http://api.danjiguanjia.com'
+	
+}

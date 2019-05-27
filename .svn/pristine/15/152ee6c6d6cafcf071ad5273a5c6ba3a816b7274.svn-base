@@ -1,0 +1,294 @@
+<template>
+	<div class="egg-price">
+		<search placeholder="请输入您要查询的地区" @on-change="getResult" cancel-text=" "  @on-focus="onFocus" @on-cancel="is_search_focus = false" @result-click="resultClick" :results="results" v-model="search_text" position="absolute" auto-scroll-to-top top="46px" @on-submit="onSearch" ref="search"></search>
+		<div class="egg-price-search" style="height: 44px" v-show="is_search_focus"></div>
+
+		<producing-area></producing-area>
+		<sale-address></sale-address>
+		<p class="today-egg">今日蛋价</p>
+		<div class="update-time">最后更新时间： {{ update_time }}</div>
+
+		<x-table :cell-bordered="false">
+			<thead>
+				<tr class="theme-bg">
+					<th>地区</th>
+					<th>鸡蛋价格(元/斤)</th>
+					<th>涨跌幅(元/斤)</th>
+				</tr>
+			</thead>
+			<tbody>
+				<template v-for="(data,index) in price_data">
+					<tr>
+						<td>{{ data.name }}</td>
+						<td>{{ data.price }}</td>
+						<td><span :class="data.gains>0?'theme-color-red':'theme-color'" :style="{color:data.gains == 0?'#333':false}">{{ data.gains.toFixed(2) }}</span></td>
+					</tr>
+				</template>
+			</tbody>
+		</x-table>
+
+		<div class="h60">
+
+		</div>
+
+		<div class="tab fix-box">
+			<router-link class="tab-item" to="/p/price-forecast">蛋价预测</router-link>
+			<router-link class="tab-item selected" to="/p/price-chart">查看蛋价曲线</router-link>
+		</div>
+
+		<div class="mask" v-if="is_search_focus"></div>
+	</div>
+</template>
+
+<script>
+	import { Search, Group, Cell, XButton, XTable, LoadMore, ButtonTab, ButtonTabItem, XAddress, ChinaAddressV3Data, dateFormat, Popup } from 'vux'
+	import SaleAddress from '../views/eggprice/SaleAddress'
+	import ProducingArea from '../views/eggprice/ProducingArea'
+	import 'vue-awesome/icons/map-marker'
+	import Icon from 'vue-awesome/components/Icon'
+	import { userAction } from '../api/api'
+	import { search, getSaleSearch, sreachArea } from '../api/EggPrice'
+	//匹配汉子
+	var regZH = new RegExp("[\\u4E00-\\u9FFF]+", "g");
+	export default {
+		components: {
+			Search,
+			Group,
+			Cell,
+			XButton,
+			XTable,
+			LoadMore,
+			ButtonTab,
+			XAddress,
+			Icon,
+			ProducingArea,
+			SaleAddress,
+			ButtonTabItem,
+			Popup
+		},
+		data() {
+			return {
+				price_data: [],
+				results: [{
+					title: '正在搜索中...'
+				}],
+				search_text: '',
+				is_search_focus: false,
+				update_time: ''
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '鸡蛋价格查询';
+			var xheader = document.querySelector(".vux-header-title");
+			xheader.classList.add('title-after');
+				
+			this.$store.state.price_type = 0;
+			if(this.$store.state.ticket == null) {
+				//获取当前路径
+				//				this.$store.state.source_url_name = this.$route.path;
+				this.$router.push('/p/login');
+			} else {
+				this.init();
+			}
+			userAction({
+				ticket: this.$store.state.ticket,
+				module: 15,
+				cur_version: this.$store.state.cur_version
+			})
+			this.$wechat.ready(() => {
+				var title = '蛋鸡管家-价格查询-查询全国各地鸡蛋价格,原料价格,淘汰鸡价格';
+				var link = window.location.href;
+				var imgUrl = 'https://api.danjiguanjia.com/public/icon120.png';
+				this.$wechat.onMenuShareTimeline({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareAppMessage({
+					title: title,
+					desc: '天天查价格,掌握最新价格行情信息',
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareQQ({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareWeibo({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+			});
+
+		},
+		watch: {
+			'$store.state.egg_price': {
+				handler: function() {
+					this.init();
+				},
+				deep: true
+			}
+		},
+		methods: {
+			init() {
+				this.$vux.loading.show({
+					text: '数据加载中...'
+				})
+				this.price_data = [];
+				if(this.$store.state.egg_price.type == 0) {
+					search({
+						area: this.$store.state.egg_price.area
+					}).then(rs => {
+						this.price_data = rs.data.search;
+						this.update_time = rs.data.saveTime;
+						this.$vux.loading.hide();
+					})
+				} else {
+					getSaleSearch({
+						area: this.$store.state.egg_price.area
+					}).then(rs => {
+						this.price_data = rs.data;
+						if(typeof(rs.data) != 'undefined') {
+							if(rs.data[0].savetime != 'undefined') {
+								this.update_time = rs.data[0].savetime;
+							}
+						}
+						this.$vux.loading.hide();
+					})
+				}
+			},
+			getResult() {
+				//只有汉字才能搜索
+				if(regZH.test(this.search_text)) {
+					sreachArea({
+						area: this.search_text
+					}).then(rs => {
+						if(rs.data.length > 0) {
+							this.results = [];
+							for(var i = 0; i < rs.data.length; i++) this.results.push({
+								title: rs.data[i]
+							});
+						}
+					})
+				}
+			},
+			resultClick(item) {
+				this.title = item.title;
+				this.is_search_focus = false;
+				//跳转搜索结果页面
+				this.$router.push('/p/search-result/' + item.title);
+			},
+			onFocus() {
+				this.is_search_focus = true;
+				this.$router.push('/p/eggpricesearch')
+				var xheader = document.querySelector(".vux-header-title");
+				xheader.classList.remove('title-after');
+				
+			},
+			onSearch() {
+				this.$refs.search.setBlur();
+			},
+			logHide(str) {
+				//console.log('on-hide', str)
+			},
+			logShow(str) {
+				//console.log('on-show')
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	.vux-search-box {
+		height: 100%;
+	}
+	
+	/*.weui-cells {
+		width: 90%;
+		margin: 0 auto;
+	}
+	
+	.weui-cell {
+		float: left;
+		padding: 5px 10px !important;
+		background-color: #F8F8F8;
+		margin: 0.5rem 0.2rem;
+	}
+	
+	.weui-cell:before {
+		border: none !important;
+	}*/
+	.today-egg{
+		text-align: center;
+		color: #57b663;
+		font-size: 1rem;
+		padding-bottom: 0.5rem;
+	}
+	.vux-tap-active{
+		width: 85%;
+		background-color: #FFFFFF;
+	}
+	.select-type {
+		width: 90%;
+		margin: 15px auto;
+	}
+	
+	.update-time {
+		margin-bottom: 15px;
+		text-align: center;
+	}
+	
+	.egg-price {
+		background: #FFFFFF;
+		.h60 {
+			height: 60px;
+		}
+		.fix-box {
+			position: fixed;
+			bottom: -2px;
+			width: 100%;
+			overflow: hidden;
+		}
+		.tab {
+			.tab-item {
+				color: #56b563;
+				border-top: 1px solid #ddd;
+				width: 50%;
+				text-align: center;
+				line-height: 50px;
+				height: 50px;
+				float: left;
+				background: #fff;
+				font-size: 14px;
+			}
+			.tab-item.selected {
+				color: #fff;
+				background: #56b563;
+				border-top: none;
+			}
+		}
+		.weui-search-bar__box {
+			padding: 2px 30px;
+		}
+		.weui-search-bar__box .weui-icon-search {
+			top: 2px;
+		}
+		.weui-search-bar__label {
+			top: 5.5px;
+		}
+		.mask {
+			width: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 150vh;
+			background: black;
+			filter: alpha(Opacity=80);
+			-moz-opacity: 0.5;
+			opacity: 0.5;
+		}
+	}
+	
+</style>

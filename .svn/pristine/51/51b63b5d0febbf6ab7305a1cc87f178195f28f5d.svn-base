@@ -1,0 +1,252 @@
+<template>
+	<!--该页面为新闻详情页-->
+	<div class="news-detail">
+		<h1>{{data.title}}</h1>
+		<p class="source-author"><span>{{data.source}}</span><span>{{data.author}}</span></p>
+		<p class="time-view">
+			<span>{{data.create_time}}</span><span>阅读 {{param.view|newsView}}</span>
+		</p>
+		<video :src="data.url" v-if="data.url!=''" :poster="data.cover" width="100%" controls="controls"></video>
+		<div class="chicken-detail" v-html="data.content"></div>
+
+		<div class="news-detail-audio-ani"></div>
+		<div class="news-detail-audio" @click="audioClick">
+			<img src="https://www.danjiguanjia.com/upload/audio.png" alt="" />
+			<audio class="aud"></audio>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { newsDetail, newsDetailParams, userAction } from "../../api/api"
+	export default {
+		components: {
+
+		},
+		data() {
+			return {
+				data: {},
+				param: {
+					view: 0,
+
+				},
+				
+
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '资讯详情';
+			this.$store.state.header.right_title = "";
+			this.$store.state.header.right_url = "";
+
+			this.$vux.loading.show({
+				text: '数据正在加载...'
+			})
+			newsDetailParams({
+				ticket: this.$store.state.ticket,
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.$vux.loading.hide();
+				this.param = rs.data;
+			})
+
+			newsDetail({
+				ticket: this.$store.state.ticket,
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.data = rs.data;
+
+				this.$wechat.ready(() => {
+					var title = this.data.title;
+					var link = window.location.href;
+					var imgUrl = this.data.cover;
+					this.$wechat.onMenuShareTimeline({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareAppMessage({
+						title: title,
+						desc: this.data.description,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareQQ({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareWeibo({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+				});
+
+			})
+
+			userAction({
+				ticket: this.$store.state.ticket,
+				module: 11,
+				cur_version: this.$store.state.cur_version
+			})
+		},
+		filters: {
+			newsView(view) {
+				var str = "";
+				if(view == 0) {
+					str = "加载中...";
+				} else {
+					str = view + 1;
+				}
+				return str;
+			}
+		},
+		methods: {
+
+			audioClick() {
+				var i=0;
+				var audio_num=this.data.audio_num;
+				var baseUrl = 'https://api.danjiguanjia.com/v4/news/audio/id/' + this.data.id + '/index/'
+				var news = document.querySelector('.news-detail-audio');
+				var aud = document.querySelector('.aud');
+				if(aud.paused) {
+					aud.src = baseUrl + i;
+					aud.play();
+					news.classList.add('news-detail-audio-click');
+					aud.addEventListener('ended', function() {
+						i++;
+						console.log(i)
+						aud.src = baseUrl + i;
+						aud.play();
+						if(i == audio_num) {
+							i = 0; 
+							aud.pause(); 
+							news.classList.remove('news-detail-audio-click')
+						}
+					},false)
+				} else {
+					aud.pause();
+					news.classList.remove('news-detail-audio-click')
+				}
+			},
+		}
+	}
+</script>
+
+<style lang="less">
+	.chicken-detail {
+		height: 95vh;
+		width: 100%;
+		section {
+			p,
+			sapn {
+				font-size: 16px;
+			}
+		}
+	}
+	
+	@keyframes warn {
+		0% {
+			transform: scale(0);
+			opacity: 0.0;
+			background-color: rgba(0, 0, 0, 1);
+		}
+		25% {
+			transform: scale(0.25);
+			opacity: 0.1;
+			background-color: rgba(0, 0, 0, 0.8);
+		}
+		50% {
+			transform: scale(0.5);
+			opacity: 0.3;
+			background-color: rgba(0, 0, 0, 0.6);
+		}
+		75% {
+			transform: scale(0.8);
+			opacity: 0.5;
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+		100% {
+			transform: scale(1.5);
+			opacity: 0.0;
+			background-color: rgba(0, 0, 0, 1);
+		}
+	}
+	
+	@keyframes newclicks {
+		0% {
+			transform: rotate(0deg)
+		}
+		100% {
+			transform: rotate(360deg)
+		}
+	}
+	
+	.news-detail-audio-ani {
+		position: fixed;
+		right: 1rem;
+		bottom: 1rem;
+		width: 4rem;
+		height: 4rem;
+		border-radius: 50%;
+		animation: warn 2s infinite;
+	}
+	
+	.news-detail-audio-click {
+		animation: newclicks 5s linear infinite;
+	}
+	
+	.news-detail {
+		width: 90%;
+		margin: 0 auto;
+		img {
+			width: 100%;
+		}
+		h1 {
+			font-size: 1.5rem;
+			padding: 1rem 0;
+			text-align: center;
+		}
+		.source-author,
+		.time-view {
+			text-align: center;
+			padding: 0.3rem 0;
+			span {
+				padding: 1rem;
+				color: #ccc;
+			}
+		}
+		.news-detail-audio {
+			position: fixed;
+			right: 1rem;
+			bottom: 1rem;
+			width: 4rem;
+			height: 4rem;
+			border-radius: 50%;
+			/*background: rgba(0, 0, 0, 0.5) url('https://www.danjiguanjia.com/upload/audio.png') center center no-repeat;*/
+			background: rgba(0, 0, 0, 0.5);
+			img {
+				display: inline-block;
+				width: 50%;
+				height: 50%;
+				padding-top: 25%;
+				padding-left: 25%;
+			}
+		}
+	}
+	
+	.vux-header .vux-header-left a,
+	.vux-header .vux-header-left button,
+	.vux-header .vux-header-right a,
+	.vux-header .vux-header-right button {
+		color: #57B663;
+	}
+	
+	.news-bom {
+		position: fixed;
+		bottom: -5rem;
+		left: 5%;
+		padding-bottom: 20vh;
+	}
+</style>

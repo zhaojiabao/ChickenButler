@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>导出价格</title>
+		<style>
+			.title {
+				color: rgb(130, 171, 107);
+				text-align: center;
+				font-size: 30px;
+				margin: 20px 0;
+			}
+			
+			#egg_price {
+				width: 100%;
+				height: 400px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="title">
+			本月鸡蛋价格行情趋势(全国日均价)
+		</div>
+		<div id="egg_price"></div>
+		<div style="padding: 0 10px;">
+			<hr style="border: 1px solid #57b663;width: 70%;float: left;margin-top: 40px;" />
+			<div style="width: 10%;float: left;margin: 0 3%;">
+				<img style="width: 100%;" src="./img/logo.png" />
+			</div>
+			<hr style="border: 1px solid #57b663;width: 13%;float: right;margin-top: 40px;" />
+		</div>
+		<script src="https://cdn.bootcss.com/axios/0.17.1/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.common.min.js"></script>
+		<script>
+			window.onload = function() {
+				axios.get('https://api.danji.jianong.com/map/chart/getAvgPrice', {
+					params: {
+						'type': 1,
+					}
+				}).then(function(res) {
+					console.log(res.data.data)
+					var container = document.getElementById('egg_price')
+					var myChart = echarts.init(container);
+					var option = {
+						grid: {
+							top: '30',
+							bottom: '30',
+							left: '10',
+							right: '10',
+							borderWidth: '0',
+							containLabel: true
+						},
+						xAxis: [{
+							type: 'category',
+							show: true,
+							axisTick: {
+								alignWithLabel: true
+							},
+							data: res.data.data.time,
+							splitLine: {
+								show: false,
+								lineStyle: {
+									color: '#f5f7f9'
+								}
+							},
+							axisLine: {
+								show: true,
+								lineStyle: {
+									color: 'rgb(238,238,238)'
+								}
+							},
+							axisLabel: {
+								show: true,
+								textStyle: {
+									color: '#333'
+								},
+								interval:0, 
+								rotate:50
+							},
+							axisTick: {
+								show: false
+							},
+						}],
+						yAxis: [{
+							scale: true,
+							type: 'value',
+//							splitArea: {
+//								show: true
+//							}, //保留网格区域
+							show: true,
+							axisLabel: { // 坐标轴文本标签
+								show: true,
+								textStyle: { // 其余属性默认使用全局文本样式，详见TEXTSTYLE
+									color: '#333'
+								},
+							},
+							axisLine: { // 坐标轴线
+								show: false, // 默认显示，属性show控制显示与否
+							},
+							splitLine: {
+								show: true,
+								lineStyle: {
+									color: '#f5f7f9'
+								}
+							},
+							axisTick: {
+								show: false
+							}
+						}],
+						series: [{
+							type: 'line',
+							smooth: false,
+							symbol: 'circle', //拐点样式
+							symbolSize: 6, //拐点大小
+							color:'rgb(119,149,183)',
+							showAllSymbol: true,
+							data: res.data.data.price,
+							itemStyle: {
+								normal: {
+									lineStyle: {
+										color: 'rgb(119,149,183)'
+									},
+//									borderColor: 'rgb(119,149,183)',
+									label: {
+										show: true,
+										position: 'top',
+										textStyle: {
+											fontWeight: 'bolder',
+											fontSize: '12',
+											fontFamily: '微软雅黑',
+											shadowOffsetY: 50,
+											color:'#333'
+										}
+									}
+								}
+							},
+							labelLine: {
+								normal: {
+									show: true
+								}
+							},
+						}]
+					};
+					myChart.setOption(option);
+				})
+			}
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,54 @@
+<template>
+	<div class="post-detail">
+		帖子详情{{ $route.params.post_id }}
+	</div>
+</template>
+
+<script>
+	import wx from 'weixin-js-sdk';
+	import {getWeixinSign} from '../../api/api'
+	export default{
+		
+		data(){
+			return {
+				weixin_sign:{}
+			}
+		},
+		mounted(){
+			this.$store.state.header.title = '帖子详情';
+			getWeixinSign().then(rs=>{
+				this.setWeixin(rs.data);
+			})
+			
+		},
+		methods:{
+			setWeixin(wxsign){				
+				wx.config({
+					debug: false, 
+					appId: 'wx12536d94f63c8426', 
+					timestamp:wxsign.timestamp , 
+					nonceStr: wxsign.nonceStr, 
+					signature: wxsign.signature,
+					jsApiList: [
+						'checkJsApi',
+						'onMenuShareTimeline',
+						'onMenuShareAppMessage',
+						'onMenuShareQQ',
+						'onMenuShareWeibo']
+				});
+				wx.ready(function () {	
+					wx.onMenuShareTimeline({
+						title: "{$res.title}-养殖专家在线互动答疑交流", 
+						link: window.location.href,
+						imgUrl: "https://img.jianong.com/forum.jpg"
+					});
+				});
+			}
+		}
+		
+	}
+</script>
+
+<style lang="less">
+	
+</style>

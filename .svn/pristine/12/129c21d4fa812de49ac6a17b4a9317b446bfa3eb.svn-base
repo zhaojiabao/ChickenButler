@@ -1,0 +1,124 @@
+<template>
+	<div class="my-message">
+		<button-tab>
+			<button-tab-item selected @on-item-click="onItemClick">普通帖<!--{{this.my_message_list.total}}--></button-tab-item>
+			<button-tab-item @on-item-click="onItemClick">提问帖</button-tab-item>
+		</button-tab>
+		<div class="my-message-main" v-for="my_messge in my_message_list">
+			<div class="my-message-main-left">
+				<img :src="my_messge.portrait" alt="" />
+			</div>
+			<div class="my-message-main-center">
+				<p>{{my_messge.nickname}}</p>
+				<p v-html="urlHtmlReplace(my_messge.content)"></p>
+				<p><i><img src="../../assets/time.png" alt="" /></i> <span>{{my_messge.create_time}}</span></p>
+			</div>
+			<div class="my-message-main-right">
+				<p>{{my_messge.title}}</p>
+				<p>{{my_messge.contents}}</p>
+			</div>
+		</div>
+		<hr/>
+	</div>
+
+</template>
+
+<script>
+	import { ButtonTab, ButtonTabItem } from 'vux'
+	import { myMessage } from '../../api/api'
+	export default {
+		components: {
+			ButtonTab,
+			ButtonTabItem
+		},
+		data() {
+			return {
+				my_message_list: [],
+				types: [3, 2]
+			}
+		},
+		methods: {
+			onItemClick(index) {
+				this.page = 1;
+				this.my_message_list = [];
+				this.type = this.types[index];
+				myMessage({
+					type: this.type,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					this.my_message_list = res.data.list;
+					this.$refs.scroller.reset({
+						top: 0
+					})
+				});
+			},
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			}
+		},
+		mounted() {
+			this.$store.state.header.right_title = "";
+			this.$store.state.header.title = '我的消息';
+			this.type = this.types[0];
+			myMessage({
+				type: this.type,
+				ticket: this.$store.state.ticket
+			}).then(res => {
+				if(this.$store.state.ticket == null) {
+					this.$router.push('/p/login')
+				} else {
+					this.my_message_list = res.data.list;
+				}
+			});
+		}
+	}
+</script>
+
+<style lang="less">
+	.my-message-main:after,
+	.my-message-main-right:after {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.my-message {
+		width: 90%;
+		margin: 0 auto;
+		padding: 1rem 0;
+		.my-message-main {
+			padding: 1rem 0;
+			p {
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				padding: 0.3rem 0;
+			}
+			.my-message-main-left,
+			.my-message-main-center,
+			.my-message-main-right {
+				float: left;
+			}
+			.my-message-main-left {
+				width: 15%;
+				img {
+					width: 100%;
+					border-radius: 50%;
+				}
+			}
+			.my-message-main-center {
+				width: 40%;
+				padding-left: 5%;
+				span {
+					color: orange;
+				}
+			}
+			.my-message-main-right {
+				width: 35%;
+				padding-left: 5%;
+			}
+		}
+	}
+</style>

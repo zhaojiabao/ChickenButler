@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			
+			.pop_top:after {
+				display: table;
+				clear: both;
+				content: "";
+			}
+			
+			.pop_top {
+				padding-top: 50px;
+				height: 280px;
+				width: 900px;
+			}
+			
+			.pop_top_left {
+				float: left;
+				padding-left: 200px;
+				width: 320px;
+				height: 100%;
+			}
+			
+			.pop_top_right {
+				float: left;
+				width: 320px;
+				height: 100%;
+			}
+			
+			.pop_title_style {
+				background: url(https://datav.oss-cn-hangzhou.aliyuncs.com/uploads/images/6ac43d2d83702455ade20bcd5fab3591.png) no-repeat;
+				background-size: 100% 100%;
+				color: #fff;
+				width: 200px;
+				height: 30px;
+				line-height: 30px;
+				padding-bottom: 5px;
+				margin: 15px 0;
+			}
+			
+			.pop_num {
+				font-size: 30px;
+				color: #FBF320;
+			}
+			
+			.pop_unit {
+				color: #59EBE8;
+			}
+			
+			.pop_bottom {
+				height: 900px;
+				height: 300px;
+			}
+			
+			.pop_bottom_main {
+				width: 100%;
+				height: 230px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div style="width: 900px;height: 600px;background: url(img/pop_back.png) no-repeat;background-size:100% 100%;position: relative;">
+			<div class="pop_top">
+				<div class="pop_top_left">
+					<p class="pop_title_style">数据用户规模</p>
+					<span id="user_total" class="pop_num"></span><span class="pop_unit">羽</span>
+					<p class="pop_title_style">数据用户当前实际存栏</p>
+					<span id="user_real_total" class="pop_num"></span><span class="pop_unit">羽</span>
+				</div>
+				<div class="pop_top_right">
+					<p class="pop_title_style">鸡场数量</p>
+					<span class="pop_num" id="total_farm">1502</span><span class="pop_unit">家</span>
+					<div id="chickens_pie" style="width: 280px;height: 250px;"></div>
+				</div>
+			</div>
+			<div class="pop_bottom" style="position: relative;">
+				<p class="pop_title_style" style="margin: 0;padding: 0;margin-left:50px;padding-bottom: 5px;width: 250px;position: absolute;top:-50px">数据用户存栏量省份排名TOP15</p>
+				<div class="pop_bottom_main" id="pop_bottom"></div>
+			</div>
+		</div>
+		<script src="https://cdn.bootcss.com/countup.js/1.9.3/countUp.min.js"></script>
+		<script src="https://cdn.bootcss.com/axios/0.17.1/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.common.min.js"></script>
+		<script type="text/javascript">
+			window.onload = function() {
+				axios.post('https://data.danjiguanjia.com/api/v1/getChickenFarmNum', {
+					star_time: '2017-12-22',
+					end_time: '2017-12-29'
+				}).then(function(res) {
+					document.getElementById('total_farm').innerHTML = res.data.data.totalFarmNum
+				})
+
+				function getpielist() {
+					axios.get('https://data.danjiguanjia.com/da_api/v1/getBroodNumByChickenType').then(function(res) {
+						var beiChicken = res.data.data.ycChickenNum + res.data.data.ychChickenNum;
+						var eggChicken = res.data.data.eggChickenNum;
+						var myChart = echarts.init(document.getElementById('chickens_pie'));
+						myChart.setOption({
+							tooltip: {
+								trigger: 'item',
+								formatter: "{b} ({d}%)"
+							},
+							series: [{
+								name: '',
+								type: 'pie',
+								radius: '55%',
+								center: ['50%', '50%'],
+								data: [{
+									'value': eggChicken,
+									'name': '产蛋鸡'
+								}, {
+									'value': beiChicken,
+									'name': '后备鸡'
+								}],
+								itemStyle: {
+									emphasis: {
+										shadowBlur: 10,
+										shadowOffsetX: 0,
+										shadowColor: 'rgba(0, 0, 0, 0.5)'
+									},
+									normal: {
+										label: {
+											show: true,
+											formatter: '{b}\n({d}%)'
+										}
+									}
+								}
+							}],
+							color: ['#3A7CE8', '#3DB0E9', '#2ACDAC', '#85EB50', '#D7F76C', '#FACD61']
+						})
+					})
+				}
+
+				function getZhuList() {
+					axios.get('https://data.danjiguanjia.com/da_api/v1/getTodaySunriseNumByProvince').then(function(res) {
+						var city_list = [];
+						var city_num = [];
+						for(var i = 0; i < res.data.data.data.length; i++) {
+							city_list.push(res.data.data.data[i].name)
+							city_num.push(res.data.data.data[i].num)
+						}
+						city_list = city_list.slice(0, 15)
+						city_num = city_num.slice(0, 15)
+						var myChart = echarts.init(document.getElementById('pop_bottom'));
+						myChart.setOption({
+							tooltip: {
+								trigger: 'item',
+								textStyle: {
+									fontSize: 10
+								}
+							},
+							grid: {
+								borderWidth: 0,
+								top: 25,
+								bottom: 0,
+								left: 50,
+								right: 20
+							},
+							calculable: true,
+							xAxis: [{
+								type: 'category',
+								show: false,
+								data: city_list
+							}],
+							yAxis: [{
+								type: 'value',
+								show: false
+							}],
+							series: [{
+								name: '省份',
+								type: 'bar',
+								barWidth: 20, //柱图宽度
+								itemStyle: {
+									normal: {
+										color: '#59EBE8',
+										label: {
+											show: true,
+											position: 'top',
+											formatter: '{b}\n{c}'
+										}
+									}
+								},
+								data: city_num,
+							}]
+						})
+					})
+				}
+				setTimeout(getpielist, 300)
+				setTimeout(getZhuList, 300)
+
+				axios.get('https://data.danjiguanjia.com/da_api/v1/getBroodInfoOnScreen').then(function(res) {
+					var demo = new CountUp('user_total', 0, res.data.data.data.capacity, 0, 1);
+					demo.start();
+					var dome1 = new CountUp('user_real_total', 0, res.data.data.data.sunrise_stock, 0, 1);
+					dome1.start();
+				})
+			}
+		</script>
+	</body>
+
+</html>

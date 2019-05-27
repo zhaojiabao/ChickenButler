@@ -1,0 +1,60 @@
+<template>
+	<div class="news-detail">
+		<h1>{{data.title}}</h1>
+		<p class="source-author"><span>{{data.source}}</span><span>{{data.author}}</span></p>
+		<p class="time-view"><span>{{data.create_time}}</span><span>阅读 {{data.view}}</span></p>
+		<div class="" v-html="data.content"></div>
+	</div>
+</template>
+
+<script>
+	import { newsDetail } from "../../api/api"
+	export default {
+		data() {
+			return {
+				data: ''
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '资讯详情';
+			this.$store.state.header.right_title = "分享";
+			this.$store.state.header.right_url = "";
+			newsDetail({
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.data = rs.data;
+			})
+		}
+	}
+</script>
+
+<style lang="less">
+	.news-detail {
+		width: 90%;
+		margin: 0 auto;
+		img {
+			width: 100%;
+		}
+		h1 {
+			font-size: 2rem;
+			padding: 1rem 0;
+			text-align: center;
+		}
+		.source-author,
+		.time-view {
+			text-align: center;
+			padding: 0.3rem 0;
+			span {
+				padding: 1rem;
+				color: #ccc;
+			}
+		}
+	}
+	
+	.vux-header .vux-header-left a,
+	.vux-header .vux-header-left button,
+	.vux-header .vux-header-right a,
+	.vux-header .vux-header-right button {
+		color: #57B663;
+	}
+</style>

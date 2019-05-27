@@ -1,0 +1,240 @@
+@theme-color: #56b563;
+@opacity-disabled: 0.5;
+
+/**
+* 通用背景和颜色
+*/
+
+.theme-bg {
+    background: @theme-color;
+    color: #fff
+}
+
+.theme-color {
+    color: @theme-color
+}
+
+.theme-color-red {
+    color: red
+}
+
+.line {
+    height: 5px;
+    background: #F7F7F7;
+}
+
+.vue-border-r {
+    border-right: 1px solid @theme-color;
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/**
+* Header
+*/
+
+.vux-header {
+    background: #fff;
+    .vux-header-title {
+        color: @theme-color
+    }
+    .vux-header-left {
+        .left-arrow {
+            &:before {
+                border-width: 3px 0 0 3px;
+                border-color: @theme-color;
+            }
+        }
+        .vux-header-back {
+            color: @theme-color;
+        }
+    }
+}
+
+
+/**
+* Button
+*/
+
+.weui-btn_primary {
+    background: @theme-color;
+}
+
+.weui-btn {
+    border-radius: 0;
+}
+
+.weui-input {
+    font-size: 14px;
+}
+
+.vux-button-group>a.vux-button-group-current {
+    background: @theme-color;
+}
+
+.vux-button-group>a.vux-button-tab-item-last:after,
+.vux-button-group>a.vux-button-tab-item-first:after {
+    border-color: @theme-color;
+    color: @theme-color;
+}
+
+.weui-cells {
+    margin-top: 5px;
+}
+
+.weui-cells:before,
+.vux-cell-box:before {
+    border-top: none;
+}
+
+.fa-icon {
+    color: #999
+}
+
+.weui-uploader__input-box:before,
+.weui-uploader__input-box:after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    background-color: #D9D9D9;
+}
+
+.weui-uploader__input-box {
+    float: left;
+    position: relative;
+    margin-right: 9px;
+    margin-bottom: 9px;
+    width: 77px;
+    height: 77px;
+    border: 1px solid #D9D9D9;
+    &:before {
+        width: 2px;
+        height: 39.5px;
+    }
+    &:after {
+        width: 39.5px;
+        height: 2px;
+    }
+}
+
+.weui-uploader__input {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.weui-uploader__files {
+    float: left
+}
+
+.weui-uploader__file {
+    float: left;
+    margin-right: 9px;
+    margin-bottom: 9px;
+    width: 79px;
+    height: 79px;
+    background: no-repeat center center;
+    background-size: cover;
+}
+
+.weui-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.weui-flex__item {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+    flex: 1;
+}
+
+.h60 {
+    height: 60px;
+}
+
+.vux-button-group>a {
+    color: @theme-color
+}
+
+
+.vux-tap-active {
+    width: auto !important;
+}
+
+.weui-cells {
+    margin-top: 0 !important;
+}
+
+.vux-no-group-title {
+    margin-top: 0px !important;
+}
+/**
+* swipeout
+*/
+
+
+/**
+* Cell
+*/
+
+
+/**
+* Badge
+*/
+
+
+/**
+* Popover
+*/
+
+
+/**
+* Button tab
+*/
+
+
+/* alias */
+
+
+/**
+* Swiper
+*/
+
+
+/**
+* checklist
+*/
+
+
+/**
+* popup-picker
+*/
+
+
+/**
+* popup
+*/
+
+
+/**
+* form-preview
+*/
+
+
+/**
+* load-more
+*/

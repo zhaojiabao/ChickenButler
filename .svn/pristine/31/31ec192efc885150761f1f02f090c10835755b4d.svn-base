@@ -1,0 +1,164 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+
+import Layout from '@/views/common/layout'
+import Login from '@/components/Login'
+
+import Index from '@/components/Index'
+
+import Hello from '@/components/Hello'
+
+//蛋价查询
+import EggPrice from '@/components/EggPrice'
+import SearchResult from '@/views/eggprice/SearchResult' //搜索结果
+import PriceForecast from '@/views/eggprice/Forecast-Price' //蛋价预测
+import ForecastRecord from '@/views/eggprice/Forecast-Record' //预测记录
+import ForecastActive from '@/views/eggprice/Forecast-Active' //预测活动
+import PriceChart from '@/views/eggprice/Chart-Price' //价格曲线
+import MaterialChart from '@/views/eggprice/Chart-Material' //原料曲线
+import CullChickChart from '@/views/eggprice/Chart-CullChick' //淘汰鸡曲线
+
+//资讯
+import NewsDetail from '@/views/news/detail' //资讯详情
+
+//论坛
+import PostDetail from '@/views/forum/PostDetail' //帖子详情
+
+//秒杀商品
+import SeckillGoodsDetail from '@/views/seckill/GoodsDetail' //商品详情
+
+//活动页面
+import PB_coolSummer from '@/views/active/PB_coolSummer' //清凉一夏
+import PB_autumn from '@/views/active/PB_autumn' //迎秋送暑
+import PB_autumn_lotty from '@/views/active/PB_autumn_lotty' //迎秋送暑
+
+//个人中心
+import CooperationIndex from '@/views/personal/business/CooperationIndex' // 商业合作首页
+import CooperationCompanyInfo from '@/views/personal/business/CooperationCompanyInfo' // 商家信息
+import CooperationSuccess from '@/views/personal/business/CooperationSuccess' // 提交成功
+
+
+Vue.use(Router)
+
+export default new Router({
+	//mode: 'history',
+	routes: [{
+			path: '/',
+			name: 'Index',
+			component: Index
+		}, {
+			path: '/hello',
+			name: 'Hello',
+			component: Hello
+		},
+		{
+			path: '/p',
+			component: Layout,
+			children: [{
+					path: 'login',
+					name: 'login',
+					component: Login
+				}, {
+					path: 'regist',
+					name: 'regist',
+					component: Login
+				},
+				/**
+				 * 蛋价查询模块
+				 * @pages 首页    	  
+				 */
+				{
+					path: 'egg-price',
+					name: 'egg-price',
+					component: EggPrice
+				}, {
+					path: 'search-result/:area',
+					name: 'SearchResult',
+					component: SearchResult
+				}, {
+					path: 'price-forecast',
+					name: 'PriceForecast',
+					component: PriceForecast
+				}, {
+					path: 'forecast-record',
+					name: 'ForecastRecord',
+					component: ForecastRecord
+				}, {
+					path: 'forecast-active',
+					name: 'ForecastActive',
+					component: ForecastActive
+				}, {
+					path: 'price-chart',
+					name: 'PriceChart',
+					component: PriceChart
+				}, {
+					path: 'material-chart',
+					name: 'MaterialChart',
+					component: MaterialChart
+				}, {
+					path: 'cull-chick-chart',
+					name: 'CullChickChart',
+					component: CullChickChart
+				},
+				/**
+				 * 秒杀模块
+				 * @pages 商品详情    	  
+				 */
+				{
+					path: 'seckill/goods-detail/:time_id/:good_id',
+					name: 'seckill-goods-detail',
+					component: SeckillGoodsDetail
+				},
+				/**
+				 * 资讯模块
+				 * @pages 资讯详情    资讯首页 	  
+				 */
+				{
+					path: 'news/detail/:news_id',
+					name: 'news-detail',
+					component: CooperationIndex
+				},
+				/**
+				 * 论坛模块
+				 * @pages 帖子详情    论坛首页 	  
+				 */
+				{ // 帖子详情
+					path: 'forum/post-detail/:post_id',
+					name: 'post-detail',
+					component: PostDetail
+				},
+				/**
+				 * 个人中心商业合作
+				 * @pages 首页    企业信息 	  
+				 */
+				{
+					path: 'cooperation-index',
+					name: 'CooperationIndex',
+					component: CooperationIndex
+				},
+				{
+					path: 'cooperation-company-info',
+					name: 'CooperationCompanyInfo',
+					component: CooperationCompanyInfo
+				},
+				{
+					path: 'cooperation-success/:id',
+					name: 'CooperationSuccess',
+					component: CooperationSuccess
+				}
+			]
+		}, {
+			path: '/cool-summer',
+			name: 'CoolSummer',
+			component: PB_coolSummer
+		}, {
+			path: '/autumn',
+			name: 'PBAutumn',
+			component: PB_autumn_lotty
+		}, {
+			path: '/pb_autumn',
+			name: 'PB_autumn_lotty',
+			component: PB_autumn_lotty
+		}
+	]
+})

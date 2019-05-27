@@ -1,0 +1,254 @@
+<template>
+	<div class="home">
+		<div class="">
+			<search @result-click="resultClick" placeholder="搜索关键字或标签" @on-change="getResult" :results="results" v-model="value" position="absolute" auto-scroll-to-top @on-focus="onFocus" @on-cancel="onCancel" @on-submit="onSubmit" ref="search"></search>
+		</div>
+		<div class="home-function">
+			<swiper :list="banner_list" v-model="banner_index" dots-position="center" :show-desc-mask="false" :auto="true" :loop="true" :interval="1500"></swiper>
+			<!--九宮格-->
+			<grid :rows="4" v-for="module in module_list">
+				<grid-item v-for="item in module">
+					<img slot="icon" :src="item.img">
+					<p>{{ item.title }}</p>
+				</grid-item>
+			</grid>
+		</div>
+		<div class="news">
+			<p class="zixun">新闻资讯</p>
+			<div class="news-list" v-for="news in news_list">
+				<div class="news-list-left">
+					<div>
+						<img :src="news.cms_pic" alt="" />
+					</div>
+					<p class="method">{{news.author}}</p>
+					<p class="state">免疫</p>
+				</div>
+				<div class="news-list-right">
+					<h3>{{news.cms_title}}！</h3>
+					<p>{{news.description}}</p>
+					<p class="data"><span class="span-time">{{news.create_time}}</span><span class="span-number">{{news.view}}</span></p>
+					<p class="name">佚名</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { indexBanner, indexNews } from "../api/api"
+	import { Swiper, Grid, GridItem, Search } from 'vux'
+	import axios from 'axios'
+	import Vue from 'vue'
+
+	export default {
+		components: {
+			Swiper,
+			Grid,
+			GridItem,
+			Search
+		},
+		data() {
+			return {
+				results: [],
+				value: 'test',
+				banner_list: [],
+				banner_index: 0,
+				news_list: [],
+				module_list: [
+					[{
+						title: '热点资讯',
+						img: 'https://img.jianong.com/redianzixun1@2x.png'
+					}, {
+						title: '云健康',
+						img: 'https://img.jianong.com/yunjiance@2x.png'
+					}, {
+						title: '蛋鸡保险',
+						img: 'https://img.jianong.com/danjibaoxian1@2x.png'
+					}, {
+						title: '管家商城',
+						img: 'https://img.jianong.com/guanjiashangcheng@2x.png'
+					}],
+					[{
+						title: '蛋价查询',
+						img: 'https://img.jianong.com/danjiaditu1@2x.png'
+					}, {
+						title: '管家视界',
+						img: 'https://img.jianong.com/guanjiashijie1@2x.png'
+					}, {
+						title: '生产效益',
+						img: 'https://img.jianong.com/shengchanxiaoyi@2x.png'
+					}, {
+						title: '活动中心',
+						img: 'https://img.jianong.com/huodongzhongxin1@2x.png'
+					}]
+				]
+			}
+		},
+		mounted() {
+			this.$router.push('/p/egg-price');
+			indexBanner().then(rs => {
+				for(var i = 0; i < rs.data.length; i++) {
+					this.banner_list.push({
+						url: "/p/news/detail/" + rs.data[i].cms_id,
+						img: rs.data[i].cms_pic
+					});
+				}
+			});
+			
+			var _this =this;
+			indexNews().then(rs=>{
+				_this.news_list = rs.data;
+			});
+		},
+		methods: {
+			setFocus() {
+				this.$refs.search.setFocus()
+			},
+			resultClick(item) {
+				window.alert('you click the result item: ' + JSON.stringify(item))
+			},
+			getResult(val) {
+				this.results = val ? getResult(this.value) : []
+			},
+			onSubmit() {
+				this.$refs.search.setBlur()
+				this.$vux.toast.show({
+					type: 'text',
+					position: 'top',
+					text: 'on submit'
+				})
+			},
+			onFocus() {
+				console.log('on focus')
+			},
+			onCancel() {
+				console.log('on cancel')
+			}
+		}
+	}
+
+	function getResult(val) {
+		let rs = []
+		for(let i = 0; i < 20; i++) {
+			rs.push({
+				title: `${val} result: ${i + 1} `,
+				other: i
+			})
+		}
+		return rs
+	}
+</script>
+
+<style lang="less">
+	.home {
+		background: #EAEAEA;
+		.news-list,
+		.home-function {
+			background: #FFFFFF;
+		}
+		.news-list {
+			margin-top: 7px;
+		}
+		.vux-slider {
+			margin-bottom: 15px;
+		}
+		.weui-grids {
+			&:before {
+				border: none;
+			}
+			.weui-grid {
+				padding: 5px 10px;
+				&:before {
+					border: none;
+				}
+				&:after {
+					border: none;
+				}
+			}
+			.weui-grid__icon {
+				width: 70%;
+				height: auto;
+			}
+			p {
+				font-size: 14px;
+				color: #000000;
+				font-family: 微软雅黑;
+				text-align: center;
+				margin: 8px auto;
+			}
+		}
+		.news {
+			background-color: #FFFFFF;
+		}
+		.zixun {
+			text-align: center;
+			font-size: 1.3rem;
+			padding: 1rem 0;
+			background-color: white;
+			margin-top: 1rem;
+			color: #CCCCCC;
+		}
+		.news-list {
+			width: 90%;
+			border-top: 1px dotted #CCCCCC;
+			margin: 0 auto;
+			padding: 1rem 0;
+		}
+		.news-list:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+		.news-list-left,
+		.news-list-right {
+			float: left;
+		}
+		.news-list-left {
+			width: 30%;
+		}
+		.news-list-left img {
+			width: 7rem;
+			height: 7rem;
+		}
+		.news-list-left .state {
+			border: 1px solid #000000;
+			display: inline;
+			padding: 0.2rem 0.75rem;
+			border-radius: 5px;
+			vertical-align: middle;
+		}
+		.news-list-left .method {
+			padding: 1rem 0;
+		}
+		.news-list-right {
+			width: 65%;
+			padding-left: 5%;
+		}
+		.news-list-right h3 {
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+		.news-list-right p:first-of-type {
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+			padding: 1.5rem 0;
+		}
+		.news-list-right .span-time {
+			float: left;
+		}
+		.news-list-right .span-number {
+			float: right;
+		}
+		.news-list-right .name {
+			float: right;
+			padding: 1rem 0;
+		}
+		.news-list-right .data:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+	}
+</style>

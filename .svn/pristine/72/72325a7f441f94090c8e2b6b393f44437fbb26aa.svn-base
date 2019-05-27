@@ -1,0 +1,173 @@
+<template>
+
+	<div class="header" v-show="$store.state.header.is_show_header">
+		<x-header :left-options="left_option" @on-click-back="clickBack" @on-click-title="clickTitle" :class="{'header-border':$store.state.header.border}">
+			<a slot="right" class="right_header" @click="rightClick" v-show="$store.state.header.right_title != ''">{{ $store.state.header.right_title }} <img src="" alt="" /></a>
+			{{ $store.state.header.title }}
+		</x-header>
+		
+		
+		
+		<!--<popup v-model="show13" position="top" style="margin-top: 47px;" class="popup_title" >
+	       <ul>
+	       	<li>
+	       		<img src="../../assets/egg_price (1).png" alt="" />
+	       		<span>鸡蛋价格查询</span>
+	       	</li>
+	       <li>
+	       		<img src="../../assets/egg_price (2).png" alt="" />
+	       		<span>原料价格查询</span>
+	       	</li>
+	       <li>
+	       		<img src="../../assets/egg_price (3).png" alt="" />
+	       		<span>淘汰鸡价格查询</span>
+	       	</li>
+	       </ul>
+      	</popup>-->
+	</div>
+</template>
+
+<script>
+	import { XHeader,Popup } from 'vux'
+	import { userInfo, userScore, getWeixinSign } from "../../api/api"
+	export default {
+		components: {
+			XHeader,
+			Popup
+		},
+		data() {
+			return {
+				left_option: {
+					preventGoBack:true,
+					showBack: this.$store.state.header.showBack,
+					backText: this.$store.state.header.backText
+				},
+				show13:false
+
+			}
+		},
+		//this.$store.state.source_url_name
+		mounted() {
+			this.$store.state.ticket = localStorage.getItem('ticket');
+			//console.log(this.$store.state.ticket);
+			if(this.$store.state.ticket != null) this.getUserInfo();
+			var ua = navigator.userAgent.toLowerCase();
+			if(ua.match(/djgj_jn/) && this.$route.query.ticket != undefined) {
+				this.$store.state.ticket = this.$route.query.ticket;
+			}
+			// 判断是否在蛋鸡管家中			
+			var userAgent = navigator.userAgent;
+			if(userAgent.indexOf('DJGJ_JN') > 0) {
+				this.$store.state.header.is_show_header = false;
+			}
+			// 分割当前页面数组获取#号前的链接
+			var url_arr = window.location.href.split("#");
+			//微信配置
+			getWeixinSign({
+				url: url_arr[0]
+			}).then(rs => {
+				this.$wechat.config({
+					debug: false,
+					appId: rs.data.appId,
+					timestamp: rs.data.timestamp,
+					nonceStr: rs.data.nonceStr,
+					signature: rs.data.signature,
+					jsApiList: [
+						'checkJsApi',
+						'onMenuShareTimeline',
+						'onMenuShareAppMessage',
+						'onMenuShareQQ',
+						'onMenuShareWeibo',
+						'onMenuShareQZone'
+					]
+				});
+				this.$wechat.error(function(res) {
+					console.log(res);
+				});
+			})
+			this.$store.state.header.right_title = "";
+		},
+		methods: {
+			getUserInfo() {
+				var params = {
+					ticket: this.$store.state.ticket
+				};
+				userInfo(params).then(rs => {
+					if(rs.data.real_name == "") rs.data.real_name = rs.data.mobile;
+					this.$store.state.userInfo = rs.data;
+				});
+				userScore(params).then(rs => {
+					this.$store.state.userInfo.score = rs.data.score;
+				});
+			},
+			rightClick() {
+				this.$router.push(this.$store.state.header.right_url);
+			},
+			//重写后退按钮
+			clickBack(){
+				if(this.$route.name== "PriceChart"){
+					this.$router.push("/p/egg-price");
+				}else if(this.$route.name== "EggPrice"){
+					this.$router.push("/");
+				}else if(this.$route.name== "Login"){
+					this.$router.push("/");
+				}else{
+					this.$vux.loading.hide();
+					this.$router.go(-1);
+				}
+			},
+//			clickTitle(){
+//				if(this.$route.name== "EggPrice"){
+//					this.show13=true
+//				}
+//			}
+		}
+	}
+</script>
+
+<style lang="less">
+	.header {
+		height: 47px;
+		position: relative;
+		z-index: 100;
+	}
+	
+	.header .vux-header {
+		position: fixed;
+		width: 100%;
+		top: 0;
+		left: 0;
+		background: #FFFFFF;
+		z-index: 99999;
+	}
+	
+	.header-border {
+		border-bottom: 1px solid #ddd;
+	}
+	
+	.right_header {
+		font-size: 1rem;
+	}
+	.popup_title{
+		ul{
+			width:90%;
+			margin: 0 auto;
+			li{
+				float: left;
+				width: 31%;
+				padding: 5% 1% ;
+				text-align: center;
+				img{
+					display: inline-block;
+					width: 3rem;
+					height: 3rem;
+				}
+				span{
+					padding-top: 0.5rem;
+					display: block;
+					text-align: center;
+				}
+			}
+		}
+	}
+</style>

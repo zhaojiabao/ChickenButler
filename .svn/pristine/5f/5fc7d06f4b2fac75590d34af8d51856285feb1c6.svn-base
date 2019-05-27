@@ -1,0 +1,40 @@
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)
+
+// 创建 store 实例
+export default new Vuex.Store({
+	state: {
+		cur_version:'1.0',
+		ticket:null,
+		userInfo:null,
+		source_url_name:'',//当前路径名称
+		//头部标题栏
+		header: {
+			title: '',
+			showBack:true,
+			backText:'',
+			border:true,
+			is_show_header:true,
+			preventGoBack:false,
+			right_title:'',
+			right_url:''
+		},
+		//鸡蛋价格
+		egg_price:{
+			type:0,//0主产区，1主销区
+			area:'河北,石家庄市',//地区
+		},
+		//预测活动
+		forecast:{
+			rule:''
+		},
+		banner_url:'',
+		news_selected_categroy:0,//当前选择的分类
+		forum_selected_index:0,//论坛选择分类
+		price_type:0,//价格类型分类
+		my_forum_index:0,//我的论坛选择分类
+		my_message_index:0//我的消息选择分类
+	}
+})

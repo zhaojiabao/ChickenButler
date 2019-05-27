@@ -1,0 +1,578 @@
+<template>
+	<!--该页面为帖子详情页-->
+	<div class="forum-detail">
+		<div class="forum-detail-top">
+			<p class="forum-detail-title">{{forums.title}}</p>
+			<ul class="forum-detail-ul">
+				<li>
+					<i>
+						<img src="https://api.danjiguanjia.com/public/image/eye.png" alt="" />
+					</i>
+					<span>{{forums.view}}</span>
+				</li>
+
+				<li :class="{'praised':forums.is_praise==1}">
+					<i>
+						<img @click="isPraise(forums)" src="../../assets/zan.png" alt="" v-if="forums.is_praise==0" />
+						<img @click="notPraise(forums)" src="../../assets/zanzan.png" alt="" v-else/>
+					</i>
+					<span>{{forums.praise}}</span>
+				</li>
+				
+				<li @click="delPost(forums)" v-if="forums.is_del_report == 1">
+					<i><img src="../../assets/del.png" alt="" /></i>
+					<span>删除</span>
+				</li>
+
+				<li v-else>
+					<div :class="{'praised':forums.is_report == 1}">
+						<div @click="showPopupPickerFun(forums)" class="jubao" v-if="forums.is_report==0">
+							<img src="../../assets/jubao.png" alt="" />
+							<span>举报</span>
+							<actionsheet v-model="show" :menus="menus" @on-click-menu="clickReport"></actionsheet>
+						</div>
+						<div class="jubao" v-else>
+							<img @click="cancleReport1(forums)" src="../../assets/yijubao.png" alt="" />
+							<span>已举报</span>
+						</div>
+					</div>
+				</li>
+				<li :class="{'praised':forums.is_favorite==1}">
+					<i>
+						<img @click="isFavorite(forums)" src="../../assets/shoucang1.png" alt="" v-if="forums.is_favorite==0" />
+						<img @click="notFavorite(forums)" src="../../assets/shoucang.png" alt="" v-else />
+					</i>
+					<span>{{forums.favorite}}收藏</span>
+				</li>
+			</ul>
+			<div class="forum-detail-author">
+				<div class="forum-detail-author-left" >
+					<img :src="forums.portrait" alt="" v-lazy="forums.portrait" />
+				</div>
+				<div class="forum-detail-author-right">
+					<p><span>{{forums.nickname}}</span>
+						<i><img src="../../assets/pu.png" alt="" v-show="forums.type==3"/></i>
+						<i><img src="../../assets/jing.png" alt="" v-show="forums.type==1 || forums.is_jing==1" /></i>
+						<i><img src="../../assets/wen.png" alt=""  v-show="forums.type==2"/></i>
+						<span class="floor">楼主</span>
+					</p>
+					<div class="ask-egg">
+						<button @click="addFriend1(forums)" class="weiguanzhu" v-if="forums.is_friend==0">关 注</button>
+						<button @click="delFriend1(forums)" class="yiguanzhu" v-else>已关注</button>
+						<div class="ask-egg-right" v-if="forums.type==2">
+							<span class="egg">提问鸡蛋: {{forums.prize_scores}}枚</span><span class="ask" v-if="forums.is_adopt==0">提问中</span><span class="finish" v-else>已解决</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="froum-img" v-if="forums.cover.length >0" v-for="(coimg,index) in forums.cover">
+				<img :src="coimg" alt="" v-lazy="coimg" />
+			</div>
+			<p class="content" v-html="urlHtmlReplace(forums.content)">
+			</p>
+			<p class="content">
+				{{this.forums.create_time}}
+			</p>
+			<hr />
+		</div>
+		<div class="comment">
+			<div class="forum-detail-bottom" v-for="(replay,index) in forums_bottom">
+				<ul>
+					<li><img :src="replay.portrait" alt="" v-lazy="replay.portrait" /></li>
+					<li>{{replay.nickname}}</li>
+					<li> </li>
+					<li>{{replay.role}}楼</li>
+				</ul>
+				<p v-if="replay.sign_comment == 'text'" v-html="urlHtmlReplace(replay.content)">
+				</p>
+				<p v-else>
+					<button class="btnbox" @click="btnClick"> </button>
+					<span class="replay-length">{{replay.length}}s</span>
+					<audio class="audios-btn" :src="replay.content"></audio>
+				</p>
+				<p>{{replay.create_time}}</p>
+				<div class="level_two" v-for="(info,index) in replay.er_info" v-if="replay.er_info.length > 0">
+					<ul>
+						<li><img :src="info.portrait" alt="" /></li>
+						<li>{{info.nickname}}</li>
+						<li>{{info.create_time}}</li>
+					</ul>
+					<p v-if="info.sign_comment == 'text'" v-html="urlHtmlReplace(info.content)"></p>
+					<p v-else>
+						<button class="btnbox" @click="btnClick"> </button>
+						<audio :src="info.content"></audio>
+					</p>
+				</div>
+				<hr />
+			</div>
+
+		</div>
+	</div>
+</template>
+
+<script>
+	import { PopupPicker ,Actionsheet} from 'vux'
+	import { postDetail, likeCommunity, unlikeCommunity, favoritePost, delFavoritePost, addFriend, delFriend, addReport, cancleReport,delCommunity } from '../../api/api'
+	import wx from 'weixin-js-sdk';
+	export default {
+		components: {
+			PopupPicker,
+			Actionsheet
+		},
+		data() {
+			return {
+				forums: {
+					content: ''
+				},
+				forums_bottom: [],
+				post: false,
+				current_post: {},
+				showPopupPicker: false,
+				show: false,
+				menus: [{
+					label: '<p style="color:#ccc;font-size:12px;font-family: 微软雅黑">举报内容</p>',
+					type: 'info'
+				}, {
+					label: '传播谣言',
+					value: '传播谣言'
+				}, {
+					label: '诈骗钱财',
+					value: '诈骗钱财'
+				}, {
+					label: '存在侵权行为',
+					value: '存在侵权行为'
+				}, {
+					label: '不适当的内容',
+					value: '不适当的内容'
+				}]
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '帖子详情';
+			this.$store.state.header.right_title = ""
+			postDetail({
+				community_id: this.$route.params.post_id,
+				ticket: this.$store.state.ticket
+			}).then(res => {
+				this.forums = res.data.top
+				this.forums_bottom = res.data.bottom
+				//配置微信
+				this.$wechat.ready(() => {
+					var title = this.forums.title + ' - 养殖专家在线互动交流'
+					var imgUrl = 'https://img.jianong.com/forum.jpg';
+					this.$wechat.onMenuShareTimeline({
+						title: title,
+						link: window.location.href,
+						imgUrl: imgUrl
+					});
+				});
+			});
+		},
+		methods: {
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			btnClick() {
+				var audios = document.querySelector(".audios-btn");
+				audios.play();
+			},
+			//点赞
+			isPraise(forums) {
+				forums.is_praise = 1;
+				forums.praise++;
+				likeCommunity({
+					ticket: this.$store.state.ticket,
+					community_id: forums.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//取消点赞
+			notPraise(forums) {
+				forums.is_praise = 0;
+				forums.praise--;
+				unlikeCommunity({
+					ticket: this.$store.state.ticket,
+					community_id: forums.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//收藏
+			isFavorite(forums) {
+				forums.is_favorite = 1;
+				favoritePost({
+					ticket: this.$store.state.ticket,
+					community_id: forums.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//取消收藏
+			notFavorite(forums) {
+				forums.is_favorite = 0;
+				delFavoritePost({
+					ticket: this.$store.state.ticket,
+					community_id: forums.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//添加关注
+			addFriend1(forums) {
+				this.forums.is_friend = 1;
+				addFriend({
+					ticket: this.$store.state.ticket,
+					friend_id: forums.user_id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			//取消关注
+			delFriend1(forums) {
+				this.forums.is_friend = 0;
+				delFriend({
+					ticket: this.$store.state.ticket,
+					friend_id: forums.user_id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+
+			},
+			onHidePopup() {
+				this.showPopupPicker = false;
+			},
+			showPopupPickerFun(post) {
+				this.current_post = post;
+				this.show = true;
+			},
+			//取消举报
+			cancleReport1(forum) {
+				this.show = false;
+				forum.is_report = 0;
+				cancleReport({
+					ticket: this.$store.state.ticket,
+					type: 2,
+					community_id: forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			clickReport(key) {
+				// 举报的帖子,举报内容
+				this.current_post.is_report = 1;
+				addReport({
+					ticket: this.$store.state.ticket,
+					type: 2,
+					community_id: this.current_post.id,
+					reason: key
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+
+			},
+			delPost(forums) {
+				var _this = this;
+				this.$vux.confirm.show({
+					title: '您是否确认删除该帖子?',
+					onCancel() {},
+					onConfirm() {
+						delCommunity({
+							ticket: _this.$store.state.ticket,
+							community_id:forums.id
+						}).then(res => {
+							if(res.retcode == "2000") {
+								_this.$vux.toast.text(res.msg);
+								_this.$route.push('/p/forum-list/4')
+							} else {
+								_this.$vux.toast.text('');
+							}
+						})
+
+					}
+				})
+			}
+		},
+		filters: {
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			}
+		}
+	}
+</script>
+
+<style lang="less" >
+	.jubao {
+		img {
+			display: inline-block;
+			height: 1rem;
+			width: 1rem;
+		}
+	}
+	
+	.praised {
+		color: #FF0000;
+	}
+	
+	.forum-detail {
+		p,span{
+			font-size: 1.1rem;
+		}
+		.btnbox {
+			width: 30%;
+			background-color: #57B663;
+			border: none;
+			height: 2rem;
+			border-radius: 0.5rem;
+			float: left;
+		}
+		.btnbox:hover {
+			opacity: 0.5
+		}
+		p:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+		width: 90%;
+		margin: 0 auto;
+		.forum-detail-title {
+			font-size: 1.3rem;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+			text-align: center;
+			padding: 0.5rem;
+		}
+		.forum-detail-ul {
+			padding: 1rem;
+			overflow: hidden
+		}
+		.froum-img {
+			img {
+				width: 100%;
+				height: 35vh;
+			}
+		}
+		.forum-detail-ul li:first-child {
+			text-align: left;
+		}
+		.forum-detail-ul li:last-child {
+			text-align: right;
+		}
+		.forum-detail-ul li {
+			float: left;
+			width: 25%;
+			text-align: center;
+		}
+		.forum-detail-ul li i {
+			display: inline-block;
+			width: 1rem;
+			height: 0.3rem;
+			img {
+				width: 100%;
+				padding-right: 1rem;
+			}
+		}
+		.forum-detail-ul li span {
+			padding-left: 0.5rem;
+		}
+		.forum-detail-author:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+		.forum-detail-author {
+			padding: 1rem 0;
+			.forum-detail-author-left {
+				width: 15%;
+				float: left;
+				img {
+					display: inline-block;
+					width: 5rem;
+					border-radius: 50%;
+					height: 5rem;
+				}
+			}
+			.forum-detail-author-right {
+				width: 75%;
+				padding-left: 5%;
+				float: right;
+				p {
+					padding-bottom: 1rem;
+					position: relative;
+					i {
+						position: absolute;
+						top: 0;
+						right: 5rem;
+						display: inline-block;
+					}
+					.floor {
+						color: #1b6cb3;
+						float: right;
+						padding-right: 1.2rem;
+					}
+				}
+			}
+		}
+		p.content {
+			margin: 1rem 0;
+		}
+		.forum-detail-bottom {
+			margin-top: 1rem;
+			p {
+				margin: 1rem 0;
+			}
+			ul:after {
+				content: " ";
+				display: table;
+				clear: both;
+			}
+			ul li {
+				float: left;
+			}
+			ul li:first-child {
+				width: 10%;
+				img {
+					display: inlin-block;
+					border: 1px solid #FFFFFF;
+					height: 3rem;
+					width: 3rem;
+					border-radius: 50%;
+				}
+			}
+			ul li:nth-child(2) {
+				width: 32%;
+				padding-left: 8%;
+				padding-top: 1rem;
+			}
+			ul li:nth-child(3) {
+				padding-top: 1.5%;
+				width: 25%;
+				text-align: right;
+				button {
+					border: none;
+					border: 1px solid #CCCCCC;
+					border-radius: 2px;
+					padding-bottom: 0.5rem;
+				}
+			}
+			ul li:nth-child(4) {
+				width: 25%;
+				color: #1b6cb3;
+				text-align: right;
+				padding-top: 2%;
+			}
+		}
+		.level_two {
+			margin-left: 15%;
+			ul:after {
+				content: "";
+				display: table;
+				clear: both;
+			}
+			ul li:first-child {
+				width: 12%;
+				float: left;
+			}
+			ul li:nth-child(2) {
+				width: 38%;
+				padding-left: 10%;
+				float: left;
+			}
+			ul li:nth-child(3) {
+				width: 40%;
+				float: right;
+				text-align: right;
+			}
+		}
+		.ask-egg {
+			button {
+				border: none;
+				text-align: center;
+			}
+			.egg {
+				color: #FF0000;
+			}
+			.ask-egg-right {
+				width: 65%;
+				float: right;
+			}
+			.weiguanzhu {
+				width: 5rem;
+				background-color: #FF0000;
+				color: #FFFFFF;
+				border-radius: 1rem;
+				padding: 0.25rem;
+				outline: none;
+			}
+			.yiguanzhu {
+				width: 5rem;
+				background-color: #CCCCCC;
+				border-radius: 1rem;
+				padding: 0.25rem;
+				outline: none;
+			}
+			.ask {
+				float: right;
+				background-color: orange;
+				padding: 0.1rem 0.1rem;
+				color: #FFFFFF;
+			}
+			.finish {
+				float: right;
+				background-color: #57B663;
+				padding: 0.1rem 0.1rem;
+				color: #FFFFFF;
+			}
+		}
+		.replay-length {
+			float: left;
+			padding: 0.2rem 0 0 1rem;
+			font-size: 1.3rem;
+		}
+		.weui-mask {
+			background: rgba(0, 0, 0, 0.2)!important;
+		}
+		.vux-actionsheet-menu-default {
+			color: #1d70e4 !important;
+			font-family: "微软雅黑";
+		}
+	}
+</style>

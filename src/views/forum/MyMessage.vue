@@ -1,0 +1,212 @@
+<template>
+	<!--我的消息页面-->
+	<div class="my-message">
+		<div class="my-message-fixed">
+			<button-tab style="padding: 1rem 0;">
+				<button-tab-item :selected="index == $store.state.my_message_index" @on-item-click="onItemClick" v-for="(mymess_btn,index) in mymess_btntab" >{{mymess_btn}}</button-tab-item>
+			</button-tab>
+		</div>
+		<div class="my-message-main" v-for="(my_messge,index) in my_message_list" @click="forumClick(my_messge.community_id)">
+			<div class="my-message-wrap">
+				<div class="my-message-main-left">
+					<img :src="my_messge.portrait" alt="" />
+				</div>
+				<div class="my-message-main-center">
+					<p class="my-message-main-center-nickname">{{my_messge.nickname | tell(users)}}</p>
+					<p v-html="urlHtmlReplace(my_messge.content)"></p>
+					<p><i><img src="../../assets/time.png" alt="" /></i> <span>{{my_messge.create_time}}</span></p>
+				</div>
+				<div class="my-message-main-right">
+					<p class="my-message-title">{{my_messge.title}}</p>
+					<p class="my-message-content">{{my_messge.contents}}</p>
+				</div>
+			</div>
+			<hr/>
+		</div>
+		<mugen-scroll :handler="fetchData" :should-handle="!loading" scroll-container="wrap">
+
+		</mugen-scroll>
+	</div>
+
+</template>
+
+<script>
+	import { ButtonTab, ButtonTabItem } from 'vux'
+	import { myMessage,userInfo } from '../../api/api'
+	import MugenScroll from 'vue-mugen-scroll'
+	var pattern = /^1[34578]\d{9}$/;
+	export default {
+		components: {
+			ButtonTab,
+			ButtonTabItem,
+			MugenScroll
+		},
+		data() {
+			return {
+				my_message_list: [],
+				types: [3, 2],
+				loading: false,
+				page:0,
+				users:{},
+				mymess_btntab:['普通帖','提问帖']
+			}
+		},
+		methods: {
+			//不同按钮的点击事件
+			onItemClick(index) {
+				this.my_message_list = [];
+				this.type = this.types[index];
+				this.$store.state.my_message_index = index;
+				myMessage({
+					type: this.type,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					if(res.data != undefined) this.my_message_list = res.data.list;
+				});
+			},
+			urlHtmlReplace(str) {
+				if(str == undefined) return '';
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			forumClick(id) {
+				this.$router.push('/p/forum/post-detail/' + id)
+			},
+			//此方法是无限加载时使用的
+			fetchData() {
+				this.page++;
+				this.type=this.types[this.$store.state.my_message_index];
+				myMessage({
+					type: this.type,
+					page: this.page,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					for(var i = 0; i < res.data.list.length; i++) {
+						this.my_message_list.push(res.data.list[i]);
+					}
+				});
+			}
+		},
+		mounted() {
+			this.$store.state.header.right_title = "";
+			this.$store.state.header.title = '我的消息';
+			this.type = this.types[0];
+			if(this.$store.state.ticket == null) {
+				this.$store.state.source_url_name = '/p/mymessage';
+				this.$router.push('/p/login')
+				return false;
+			}
+			userInfo({
+				ticket: this.$store.state.ticket
+			}).then(rs =>{
+				this.users=rs.data.mobile;
+			})
+			
+			this.$wechat.ready(() => {
+				var title = '蛋鸡管家 - 全球蛋鸡产业信息化平台';
+				var link = window.location.href;
+				var imgUrl = 'https://api.danjiguanjia.com/public/icon120.png';
+				this.$wechat.onMenuShareTimeline({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareAppMessage({
+					title: title,
+					desc: '关注蛋鸡管家,随时掌握最新行情信息!',
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareQQ({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareWeibo({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+			});
+		},
+		filters: {
+			tell(value, users) {
+//				value=value.toString();
+				if(pattern.test(value)) {
+					if(value == users) {
+						return value;
+					} else {
+						return value.substr(0, 3) + "****" + value.substr(7)
+					}
+				} else {
+					return value;
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	.my-message-wrap:after,
+	.my-message-main:after,
+	.my-message-main-right:after {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.my-message {
+		width: 90%;
+		margin: 35px auto 0;
+		padding: 1rem 0;
+		.my-message-fixed {
+			width: 90%;
+			left: 5%;
+			position: fixed;
+			top: 47px;
+			background-color: #FFFFFF;
+		}
+		.my-message-main {
+			padding: 1rem 0;
+			p {
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				padding: 0.3rem 0;
+			}
+			.my-message-main-left,
+			.my-message-main-center,
+			.my-message-main-right {
+				float: left;
+			}
+			.my-message-content {
+				color: #CCCCCC;
+			}
+			.my-message-main-left {
+				width: 15%;
+				img {
+					display: inline-block;
+					height: 4rem;
+					width: 4rem;
+					border-radius: 50%;
+					
+				}
+			}
+			.my-message-main-center {
+				width: 40%;
+				padding-left: 5%;
+				.my-message-main-center-nickname {
+					font-size: 1rem;
+				}
+				span {
+					color: orange;
+				}
+			}
+			.my-message-main-right {
+				width: 35%;
+				padding-left: 5%;
+			}
+		}
+	}
+</style>

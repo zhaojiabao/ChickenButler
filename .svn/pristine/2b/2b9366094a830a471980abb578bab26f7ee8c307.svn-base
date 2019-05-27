@@ -1,0 +1,35 @@
+<template>
+	<div class="news-detail">
+
+		<div class="" v-html="data.content">
+		</div>
+
+	</div>
+</template>
+
+<script>
+	import { newsDetail } from "../../api/api"
+	export default {
+		data() {
+			return {
+				data: ''
+			}
+		},
+		mounted() {
+
+			newsDetail({
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.data = rs.data;
+			})
+
+		}
+	}
+</script>
+
+<style>
+	.news-detail{
+		margin: 15px;
+	}
+.news-detail img{width:100%;}
+</style>

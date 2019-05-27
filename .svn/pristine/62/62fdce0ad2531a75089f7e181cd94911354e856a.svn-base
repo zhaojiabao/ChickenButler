@@ -1,0 +1,145 @@
+<template>
+	<div class="price-chart">
+
+		<group>
+			<x-address :title="title" @on-hide="logHide" v-model="value" value-text-align="left" :list="addressData" :placeholder="area" :hide-district="false">
+				<template slot="title" scope="props">
+					<div :class="props.labelClass" :style="props.labelStyle" style="height:24px;line-height: 24px;width: 60px;">
+						<icon name="map-marker" scale="1.3" class="l" style="width: 24px;"></icon>
+						<div class="l">定位：</div>
+					</div>
+				</template>
+			</x-address>
+		</group>
+
+		<iframe width="100%" border="no" :src="url"></iframe>
+		
+		<div class="h60"></div>
+		<footer class="ui-footer ui-footer-stable ui-border-t">
+			<ul class="ui-tiled">
+				<template v-for="(date,i) in dates">
+					<li :class="{active:i==cdate}" @click="cdate = i">{{ date }}</li>
+				</template>
+			</ul>
+		</footer>
+	</div>
+</template>
+
+<script>
+	import { ButtonTab, ButtonTabItem, XAddress, Group } from 'vux'
+	import Icon from 'vue-awesome/components/Icon'
+	import { chickoutAddress } from '../../api/EggPrice'
+
+	let base = "https://api.danji.jianong.com/map/chart/chickout_price/";
+	let cdate_arr = ['w', 'm', 'q', 'y'];
+	export default {
+		components: {			
+			ButtonTab,
+			ButtonTabItem,
+			XAddress,
+			Group,
+			Icon
+		},
+		data() {
+			return {
+				cdate: 1,
+				url: '',
+				area: '',
+				dates: ['周', '月', '季', '年'],
+				addressData: [],
+				value: [],
+				title: ''
+			}
+		},
+		watch: {
+			'cdate': 'init',
+			'$store.state.egg_price.type':'init',
+			'area': {
+				handler: function() {
+					this.init()
+				},
+				deep: true
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '淘汰鸡曲线';
+			this.area = this.util.deepClone(this.$store.state.egg_price.area);
+			if(this.$route.query.area != undefined) {
+				this.area = decodeURI(this.$route.query.area);
+				this.$store.state.header.is_show_header = false;
+			}
+			chickoutAddress().then(rs => {
+				this.addressData = this.util.haddleAddressData(rs.data);
+			})
+			this.init();
+		},
+		methods: {
+			init() {
+				let cdate = cdate_arr[this.cdate];
+				this.url = `${base}type/${this.$store.state.egg_price.type}/area/${this.area}/date/${cdate}`;
+			},
+			logHide(str) {
+				if(str) {
+					var area = [];
+					for(var i = 0; i < this.value.length; i++) {
+						area[i] = this.getAddressName(this.value[i]);
+					}
+					this.area = area.join(',');
+				}
+			},
+			logShow(str) {
+				console.log('on-show')
+			},
+			getAddressName(value) {
+				for(var i = 0; i < this.addressData.length; i++) {
+					if(value == this.addressData[i].value) return this.addressData[i].name;
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	@theme-color: #56b563;
+	.price-chart {		
+		background: #FFFFFF;
+		iframe {
+			border: none;
+			height: 90vh;
+		}
+		.select-date {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			.vux-button-group {
+				a {
+					height: 45px;
+					line-height: 46px;
+				}
+				a.vux-button-tab-item-first {
+					border-radius: 0;
+					&:after {
+						border-radius: 0;
+						border: none;
+						border-top: 1px solid @theme-color;
+						border-right: 1px solid @theme-color;
+					}
+				}
+				a.vux-button-tab-item-last {
+					border-radius: 0;
+					&:after {
+						border-radius: 0;
+						border: none;
+						border-top: 1px solid @theme-color;
+						border-left: 1px solid @theme-color;
+					}
+				}
+				a.vux-button-tab-item-middle:after {
+					border: none;
+					border-top: 1px solid @theme-color;
+				}
+			}
+		}
+	}
+</style>

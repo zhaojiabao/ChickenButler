@@ -1,0 +1,610 @@
+<template>
+	<!--该页面为视频详情页-->
+	<div>
+		<div class="video-detail">
+			<video height="200px" :src="video_list.video_url" :poster="video_list.v_cover" webkit-playsinline="true" x5-video-player-type="h5" controls="controls"></video>
+			<div class="video-detail-main">
+				<div class="comment-warp">
+					<div class="comment">
+						<ul>
+							<li v-model="show1" @click="clickShow1"><img src="../../assets/commit.png" alt="" /> <span>查看评论</span></li>
+							<li><span class="tag" v-for="(tag,index) in video_list.tag_id" v-if="index<2">{{tag}}</span></li>
+							<li><span class="fenxiang"></span></li>
+							<li><span class="shoucang"></span></li>
+						</ul>
+					</div>
+				</div>
+				<div class="medication-skill" v-model="show2" @click="clickShow2">
+					<div class="medication-skill-main">
+						<div class="medication-skill-left">
+							<p>{{video_list.title}}</p>
+							<p><img src="../../assets/videoplay.png" alt="" /><span> {{video_list.view}}次播放</span></p>
+						</div>
+						<div class="medication-skill-right">
+							<p><span>简介 </span><img src="../../assets/jiantou.png" alt="" /></p>
+						</div>
+					</div>
+				</div>
+				<div class="video-info" @click="clickShow3">
+					<div class="medication-skill-main">
+						<ul>
+							<li><img class="video_list_cover" :src="video_list.cover" alt="" /></li>
+							<li><span>主讲人: {{video_list.teach_name}}</span></li>
+							<li><span>简介 </span><img src="../../assets/jiantou.png" alt="" /></li>
+						</ul>
+					</div>
+				</div>
+				<div class="medication-skill-main">
+					<p class="recommend">相关推荐</p>
+					<div class="recommend-info" v-for="(recom,index) in recommends" @click="recomClick(recom.id)">
+						<ul>
+							<li><img :src="recom.cover" alt="" /></li>
+							<li>
+								<p>{{recom.title}}</p>
+								<p><img src="../../assets/videoplay.png" alt="" /> <span>{{recom.view}}</span> <span class="add-time">{{recom.add_time}}</span></p>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<popup v-model="show2" height="60%" :hide-on-blur=true :show-mask=false>
+					<div class="popup popup2">
+						<img v-model="show2" @click="dbclickShow2" class="close" src="../../assets/close.png" alt="" />
+						<p class="popup-comment">视频简介</p>
+						<hr />
+						<p>{{video_list.title}}</p>
+						<p v-html="urlHtmlReplace(video_list.description)"></p>
+					</div>
+				</popup>
+
+				<popup v-model="show3" height="60%" :hide-on-blur=true :show-mask=false>
+					<div class="popup popup3">
+						<img v-model="show3" @click="dbclickShow3" class="close" src="../../assets/close.png" alt="" />
+						<p class="popup-comment">讲师简介</p>
+						<hr />
+						<div class="popup-info">
+							<ul>
+								<li><img :src="video_list.cover" alt="" /></li>
+								<li><span>主讲人: {{video_list.teach_name}}</span></li>
+							</ul>
+						</div>
+						<p>{{video_list.descript}}</p>
+					</div>
+				</popup>
+
+				<popup v-model="show1" height="60%" :hide-on-blur=true :show-mask=false>
+					<div class="popup popup1">
+						<img v-model="show1" @click="dbclickShow1" class="close" src="../../assets/close.png" alt="" />
+						<p class="popup-comment">全部评论</p>
+						<hr />
+						<div class="popup-comment-main">
+							<div class="popup-comment-main-left">
+								<img src="../../assets/images/active/bg.jpg" alt="" />
+							</div>
+							<div class="popup-comment-main-right">
+								<p class="xiesi">已有{{comment_list.length}}评论,快来说说你的感想吧 !</p>
+							</div>
+						</div>
+						<hr />
+						<div v-for="(com,index) in comment_list">
+							<div class="popup-comment-main">
+								<div class="popup-comment-main-left">
+									<img :src="com.pic" alt="" />
+								</div>
+								<div class="popup-comment-main-right">
+									<div class="name-time">
+										<span>{{com.nickname | capitalize }} </span>
+										<span>{{com.comment_time}} </span>
+									</div>
+									<p>{{com.content}} </p>
+								</div>
+							</div>
+							<hr />
+						</div>
+					</div>
+				</popup>
+			</div>
+		</div>
+
+		<div class="inputReplay" v-if="show1" @click="replayClick">
+			<div class="inputReplay-main">
+				<input type="text" readonly="readonly" />
+				<span>发送</span>
+			</div>
+		</div>
+		<popup v-model="popup_show_input" position="bottom" class="popupShowInput" height="100%">
+			<div class="popup_shuru_block">
+				<textarea name="" rows="8" cols="" placeholder="请填写内容" v-model="comment_text"></textarea>
+				<span @click="sendClick">发送</span><span @click="popupReclick">取消</span>
+			</div>
+			<div class="popup-input-block">
+
+			</div>
+		</popup>
+	</div>
+</template>
+
+<script>
+	import { Popup } from 'vux'
+	import { videoDetail, commentList, userAction, submitComment, userInfo } from '../../api/api'
+	var pattern = /^1[34578]\d{9}$/;
+	export default {
+		components: {
+			Popup
+		},
+		data() {
+			return {
+				video_list: '',
+				recommends: [],
+				show1: false,
+				show2: false,
+				show3: false,
+				comment_list: [],
+				length: 0,
+				comment_text: '',
+				users: {},
+				popup_show_input: false,
+				replay_text: ''
+			}
+		},
+		mounted() {
+			//首先判断下是否登录
+			if(this.$store.state.ticket == null) {
+				this.$router.push('/p/login')
+			}
+			videoDetail({
+				ticket: this.$store.state.ticket,
+				v_id: this.$route.params.video_id
+			}).then(res => {
+				this.video_list = res.data.data;
+				this.recommends = res.data.recommend;
+				this.$store.state.header.title = res.data.data.title;
+				//配置微信				
+				this.$wechat.ready(() => {
+					var title = res.data.data.title;
+					var link = window.location.href;
+					var imgUrl = res.data.data.v_cover;
+					this.$wechat.onMenuShareTimeline({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareAppMessage({
+						title: title,
+						desc: res.data.data.description,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareQQ({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareWeibo({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+				});
+			});
+			//用户行为
+			userAction({
+				ticket: this.$store.state.ticket,
+				module: 164,
+				cur_version: this.$store.state.cur_version
+			})
+
+			userInfo({
+				ticket: this.$store.state.ticket
+			}).then(rs => {
+				this.users = rs.data.mobile;
+			})
+		},
+		methods: {
+			replayClick() {
+				this.popup_show_input = true;
+			},
+			popupReclick() {
+				this.popup_show_input = false;
+			},
+			//填写评论之后,点击发送
+			sendClick() {
+				submitComment({
+					ticket: this.$store.state.ticket,
+					content: this.comment_text,
+					teach_id: this.video_list.teach_id,
+					v_id: this.$route.params.video_id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.popup_show_input = false
+						this.comment_text=''
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('ddd ');
+					}
+				})
+			},
+			//点击相关推荐到对应详情页
+			recomClick(id) {
+				this.$router.push('/p/video/detail/' + id);
+				//重新加载信息
+				videoDetail({
+					ticket: this.$store.state.ticket,
+					v_id: id
+				}).then(res => {
+					this.video_list = res.data.data;
+					this.recommends = res.data.recommend;
+					this.$store.state.header.title = res.data.data.title;
+				})
+			},
+			//处理数据
+			urlHtmlReplace(str) {
+				if(str == undefined) return '';
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			//点击查看评论
+			clickShow1() {
+				this.show1 = true;
+				commentList({
+					v_id: this.$route.params.video_id,
+					teach_id: this.video_list.teach_id
+				}).then(res => {
+					if(res.data == undefined) {
+						this.show1 = true
+					} else {
+						this.comment_list = res.data;
+					}
+				})
+			},
+			dbclickShow1() {
+				this.show1 = false;
+			},
+			clickShow2() {
+				this.show2 = true;
+			},
+			dbclickShow2() {
+				this.show2 = false;
+			},
+			clickShow3() {
+				this.show3 = true;
+			},
+			dbclickShow3() {
+				this.show3 = false;
+			},
+		},
+		filters: {
+			capitalize: function(value) {
+				value = value.toString();
+				if(pattern.test(value)) {
+					return value.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'); //value.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
+				} else {
+					return value;
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped="scoped">
+	.popup-comment-main-right:after,
+	.name-time:after,
+	.popup-comment-main:after,
+	.popup-info:after,
+	.recommend-info ul:after,
+	.recommend-info:after,
+	.video-info:after,
+	.medication-skill:after {
+		content: ' ';
+		display: table;
+		clear: both;
+	}
+	
+	.popup-input-block {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		height: 4rem;
+		z-index: 1000;
+		background-color: #FFFFFF;
+		width: 100%;
+	}
+	
+	.popupShowInput {
+		z-index: 10001;
+	}
+	
+	.popup_shuru_block {
+		margin-top: ;
+		width: 100%;
+		textarea {
+			width: 100%;
+			border: 1px solid #CCCCCC;
+			outline: none;
+			padding: 0.5rem;
+		}
+		span {
+			float: right;
+			padding: 0.2rem 1rem;
+			background-color: #57B663;
+			color: #FFFFFF;
+			margin-right: 0.5rem;
+		}
+	}
+	
+	.popup {
+		position: relative;
+		width: 90%;
+		margin: 0 auto;
+		.close {
+			display: block;
+			position: absolute;
+			right: 0;
+			top: 0.5rem;
+			width: 1.5rem;
+			height: 1.5rem;
+		}
+		.popup-comment {
+			padding-top: 0.5rem;
+			font-size: 1.2rem;
+		}
+	}
+	
+	.inputReplay {
+		position: fixed;
+		z-index: 501;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background-color: #FFFFFF;
+		border-top: 1px solid #CCCCCC;
+		.inputReplay-main {
+			width: 90%;
+			margin: 0 auto;
+			padding: 0.8rem 0;
+			input {
+				width: 85%;
+				border: 1px solid #CCCCCC;
+				height: 1.8rem;
+				outline: none;
+				border-radius: 0.5rem;
+				padding-left: 0.5rem;
+			}
+			img {
+				display: inline-block;
+				width: 1.5rem;
+				height: 1.5rem;
+				float: right;
+				padding: 0.2rem 0.5rem;
+			}
+			span {
+				font-size: 1rem;
+				color: #10AEFF;
+				float: right;
+				padding: 0.2rem 0;
+			}
+		}
+	}
+	
+	.popup1 {
+		padding-bottom: 3.5rem;
+		.popup-comment-main {
+			padding-bottom: 0.5rem;
+			.popup-comment-main-left {
+				float: left;
+				width: 10%;
+				img {
+					display: inline-block;
+					height: 3rem;
+					width: 3rem;
+					border-radius: 50%;
+				}
+			}
+			.popup-comment-main-right {
+				float: right;
+				width: 85%;
+				.name-time {
+					span:first-child {
+						float: left;
+					}
+					span:last-child {
+						float: right;
+						color: #888888;
+					}
+				}
+				p {
+					padding-top: 0.5rem;
+				}
+				.xiesi {
+					margin-top: 0.6rem;
+					padding: 0.3rem 2rem;
+					border-radius: 1rem;
+					background-color: #CCCCCC;
+					color: #f8f8ff;
+				}
+			}
+		}
+	}
+	
+	.popup2 {
+		p {
+			padding-top: 0.5rem;
+		}
+	}
+	
+	.popup3 {
+		.popup-info {
+			border: none;
+			ul li {
+				float: left;
+				display: inline-block;
+			}
+			ul li:nth-child(2) {
+				padding: 1rem 0 0 2rem;
+			}
+			img {
+				display: inline-block;
+				width: 4rem;
+				height: 4rem;
+				border-radius: 50%;
+			}
+		}
+	}
+	
+	.vux-popup-dialog {
+		background-color: #FFF;
+	}
+	
+	.video-detail {
+		p,
+		span {
+			font-size: 1.1rem;
+		}
+		video {
+			width: 100%;
+			background-color: #000000;
+		}
+		.medication-skill-main {
+			width: 90%;
+			margin: 0 auto;
+			font-size: 1.2rem;
+		}
+		.video-detail-main {
+			.comment-warp {
+				border-bottom: 0.3rem solid #F8F8FF;
+				.comment {
+					width: 90%;
+					margin: 0 auto;
+					padding: 1rem 0;
+					ul li {
+						display: inline-block;
+					}
+					li:first-child {
+						width: 35%;
+						img {
+							display: inline-block;
+							width: 1.2rem;
+							height: 1.2rem;
+						}
+					}
+					li:nth-child(2) {
+						width: 40%;
+						.tag {
+							padding: 0.1rem 0.4rem;
+							margin: 0 0.1rem;
+							border: 1px solid #CCCCCC;
+							border-radius: 3px;
+							color: #CCCCCC;
+						}
+					}
+					li:last-child,
+					li:nth-last-child(2) {
+						text-align: right;
+						width: 10%;
+					}
+				}
+			}
+		}
+		.medication-skill {
+			border-bottom: 0.3rem solid #F8F8FF;
+			.medication-skill-left {
+				width: 70%;
+				float: left;
+				p {
+					margin: 1rem 0;
+					text-overflow: ellipsis;
+					overflow: hidden;
+					white-space: nowrap;
+					img {
+						display: inline-block;
+						width: 1rem;
+						height: 1rem;
+					}
+					span {
+						color: #CCCCCC;
+					}
+				}
+			}
+			.medication-skill-right {
+				float: right;
+				p {
+					color: #CCCCCC;
+					margin-top: 2rem;
+					span {
+						padding-right: 8px;
+					}
+				}
+			}
+		}
+		.video-info {
+			border-bottom: 0.3rem solid #F8F8FF;
+			padding: 1rem 0;
+			ul li {
+				float: left;
+			}
+			ul li:first-child {
+				width: 15%;
+			}
+			ul li:nth-child(2) {
+				width: 58%;
+				padding-left: 7%;
+				padding-top: 1rem;
+			}
+			ul li:last-child {
+				width: 20%;
+				text-align: right;
+				padding-top: 1rem;
+				color: #CCCCCC;
+				span {
+					padding-right: 10px;
+				}
+				img {
+					float: right;
+					margin-top: 3px;
+				}
+			}
+			.video_list_cover {
+				display: inline-block;
+				width: 4rem;
+				height: 4rem;
+				border-radius: 50%;
+			}
+		}
+		.recommend {
+			padding: 0.5rem 0;
+		}
+		.recommend-info {
+			ul li {
+				float: left;
+			}
+			ul li:first-child {
+				width: 20%;
+				img {
+					width: 100%;
+				}
+			}
+			ul li:nth-child(2) {
+				width: 75%;
+				padding-left: 5%;
+				p {
+					padding-bottom: 0.5rem;
+					text-overflow: ellipsis;
+					overflow: hidden;
+					white-space: nowrap;
+					span {
+						color: #CCCCCC;
+					}
+				}
+				img {
+					display: inline-block;
+					width: 1rem;
+					height: 1rem;
+				}
+				.add-time {
+					float: right;
+				}
+			}
+		}
+	}
+</style>

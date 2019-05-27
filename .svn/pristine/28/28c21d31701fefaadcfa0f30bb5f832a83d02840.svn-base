@@ -1,0 +1,126 @@
+@theme-color: #56b563;
+@opacity-disabled: 0.5;
+
+/**
+* 通用背景和颜色
+*/
+
+.theme-bg {
+    background: @theme-color;
+    color: #fff
+}
+
+.theme-color {
+    color: @theme-color
+}
+
+.theme-color-red{
+    color:red
+}
+
+
+/**
+* Header
+*/
+
+.vux-header {
+    background: #fff;
+    .vux-header-title {
+        color: @theme-color
+    }
+    .vux-header-left {
+        .left-arrow {
+            &:before {
+                border-width: 3px 0 0 3px;
+                border-color: @theme-color;
+            }
+        }
+        .vux-header-back {
+            color: @theme-color;
+        }
+    }
+}
+
+
+/**
+* Button
+*/
+
+.weui-btn_primary {
+    background: @theme-color;
+}
+
+.weui-input {
+    font-size: 14px;
+}
+
+.vux-button-group>a.vux-button-group-current {
+    background: @theme-color;
+}
+
+.vux-button-group > a.vux-button-tab-item-last:after,.vux-button-group>a.vux-button-tab-item-first:after {
+    border-color: @theme-color;
+    color: @theme-color;
+}
+
+.weui-cells{margin-top: 5px;}
+.weui-cells:before,.vux-cell-box:before{border-top:none;}
+
+
+.fa-icon{color:#999}
+/**
+* swipeout
+*/
+
+
+/**
+* Cell
+*/
+
+
+/**
+* Badge
+*/
+
+
+/**
+* Popover
+*/
+
+
+/**
+* Button tab
+*/
+
+
+/* alias */
+
+
+/**
+* Swiper
+*/
+
+
+/**
+* checklist
+*/
+
+
+/**
+* popup-picker
+*/
+
+
+/**
+* popup
+*/
+
+
+/**
+* form-preview
+*/
+
+
+/**
+* load-more
+*/

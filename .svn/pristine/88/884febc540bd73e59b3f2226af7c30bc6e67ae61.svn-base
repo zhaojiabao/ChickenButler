@@ -1,0 +1,127 @@
+import axios from 'axios';
+import config from './config';
+import qs from 'qs';
+
+let base = config.base_url;
+let base2 = config.test_url;
+/*
+ *	蛋价查询 
+ * */
+
+let price = '/v2/price';
+//首页搜索结果
+export const search = params => {
+	return axios.get(`${base}${price}/search`, {
+		params: params
+	}).then(res => res.data);
+};
+//搜索地区
+export const sreachArea = params => {
+	return axios.get(`${base}${price}/sreachArea`, {
+		params: params
+	}).then(res => res.data);
+};
+//获取地址 主产区
+export const productAddress = params => {
+	return axios.get(`${base}${price}/address`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//获取地址 
+let sales = '/v2/sales/';
+
+//获取地址 主销区
+export const salesAddress = params => {
+	return axios.get(`${base}${sales}/address`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//主销区首页
+export const getSaleSearch = params => {
+	return axios.get(`${base}${sales}/getSearch`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//预测接口
+//获取地址 
+let prizes = '/v2/prizes/';
+
+//预测进度
+export const progressBar = params => {
+	return axios.get(`http://api.danjiguanjia.com/v2/prizes/progressBar`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//预测饼图
+export const predict = params => {
+	return axios.get(`${base}${price}/predict`, {
+		params: params
+	}).then(res => res.data);
+};
+//点击预测蛋价
+export const toPredict = params => {
+	return axios.get(`${base}${price}/toPredict`, {
+		params: params
+	}).then(res => res.data);
+};
+//点击预测蛋价
+export const getPredict = params => {
+	return axios.get(`${base}${price}/getPredict`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//获取活动礼品 
+export const prizesDisplay = params => {
+	return axios.get(`${base}${prizes}/prizesDisplay`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//获取活动的的礼品 积蛋
+export const getGift = params => {
+	return axios.get(`${base}/v2/Prizes/addScores`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//预测接口
+//获取地址 
+let material_chart = '/v6/feedprice/';
+let action = ['weekPrice', 'mouthPrice', 'quarterPrice', 'yearPrice'];
+export const MaterialData = params => {
+	return axios.get(`${base}${material_chart}/` + action[params.type], {
+		params: params.data
+	}).then(res => res.data);
+};
+
+//搜索原料
+export const searchMaterial = params => {
+	return axios.get(`${base2}${material_chart}/searchMaterial`, {
+		params: params
+	}).then(res => res.data);
+};
+
+//淘汰鸡
+let price_chick = '/v6/price/';
+export const searchCullchick = params => {
+	return axios.get(`${base2}${price_chick}getOutIndex`, {
+		params: params
+	}).then(res => res.data);
+};
+
+export const chickoutAddress = params => {
+	return axios.get(`${base2}${price_chick}chickoutAddress `, {
+		params: params
+	}).then(res => res.data);
+};
+
+
+//获取地区数据
+export const McArea = () => {
+	return axios.get(`${base}/map/chart/getCityData`).then(res => res.data);
+}

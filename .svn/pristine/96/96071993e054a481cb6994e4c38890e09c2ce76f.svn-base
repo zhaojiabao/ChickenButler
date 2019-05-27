@@ -1,0 +1,87 @@
+<template>
+	<div class="post-circleList">
+		<div class="circleList-main" v-for="cir in circle_list">
+			<div class="circleList1">
+				<img :src="cir.image" alt="" />
+			</div>
+			<div class="circleList2">
+				<p>{{cir.name}}</p>
+				<p> {{cir.info}}</p>
+			</div>
+			<div class="circleList3">
+				<span v-if="cir.is_circle==1" @click="postClick(cir.id)">选择</span>
+				<span v-else>加入</span>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { circleList, } from '../../api/api'
+	export default {
+		data() {
+			return {
+				circle_list: []
+			}
+		},
+		mounted() {
+			circleList({
+				ticket: this.$store.state.ticket
+			}).then(res => {
+				this.circle_list = res.data;
+			});
+			this.$store.state.header.title = "选择圈子";
+			this.$store.state.header.right_title = "";
+		},
+		methods: {
+			postClick(id) {
+				console.log(id);
+				this.$router.push('/p/post/container/' + this.$route.params.type + '/' + id)
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped="scoped">
+	.circleList-main:after {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.circleList-main {
+		padding-top: 0.5rem;
+		width: 90%;
+		margin: 0 auto;
+		border-bottom: 1px solid #CCCCCC;
+		.circleList1 {
+			float: left;
+			width: 15%;
+			img {
+				height: 5rem;
+				width: 100%;
+				border-radius: 5px;
+			}
+		}
+		.circleList2 {
+			float: left;
+			width: 60%;
+			padding-left: 5%;
+			padding-top: 0.5rem;
+			p:last-child {
+				color: #CCCCCC;
+			}
+		}
+		.circleList3 {
+			float: right;
+			width: 20%;
+			padding-top: 1rem;
+			text-align: right;
+			span {
+				padding: 0.1rem 1rem;
+				color: #57B663;
+				border: 1px solid #57B663;
+			}
+		}
+	}
+</style>

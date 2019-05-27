@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+
+	<body>
+		<div id="bar2" style="width: 100%;height: 30vh;"></div>
+		
+		<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.common.min.js"></script>
+		<script src="https://cdn.bootcss.com/axios/0.17.1/axios.min.js"></script>
+		<script type="text/javascript">
+			userProductRankOption = {
+				tooltip: {
+					trigger: 'item',
+					textStyle: {
+						fontSize: 10
+					}
+				},
+				grid: {
+					borderWidth: 0,
+					x: 0,
+					y: 40,
+					x2: 0,
+					y2: 30
+				},
+				calculable: true,
+				xAxis: [{
+					type: 'category',
+					show: false,
+					data: []
+				}],
+				yAxis: [{
+					type: 'value',
+					show: false
+				}],
+				series: [{
+					name: '省份',
+					type: 'bar',
+					barWidth: 20, //柱图宽度
+					itemStyle: {
+						normal: {
+							color: '#59EBE8'
+								/*new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								                        offset: 0,
+								                        color: '#59EBE8'
+								                    }, {
+								                        offset: 1,
+								                        color: '#1E92E7'
+								                    }])*/
+								,
+							label: {
+								show: true,
+								position: 'top',
+								formatter: '{b}\n{c}'
+							}
+						}
+					},
+					data: [],
+				}]
+			};
+			var userProductRank = echarts.init(document.getElementById('bar2'));
+			userProductRank.setOption(userProductRankOption);
+			axios.get('https://data.danjiguanjia.com/da_api/v1/getBroodNumByProvince')
+				.then(function(res) {
+					var category = [];
+					var data = [];
+					var res = res.data.data.data.prodNum;
+					var index = 9;
+					var newData = []; //处理新数据，把低于一百的值改为其他
+					var otherTotal = 0;
+					for(var i = 0; i < res.length; i++) {
+						if(i < index) {
+							category.push(res[i].name);
+							data.push(res[i].count);
+							newData.push(res[i]);
+						} else {
+							if(res[i].count < 100) {
+								otherTotal += res[i].count;
+							} else {
+								newData.push(res[i]);
+							}
+						}
+					}
+					newData.push({
+						name: '其他',
+						count: otherTotal
+					});
+
+					userProductRankOption.xAxis[0].data = category;
+					userProductRankOption.series[0].data = data;
+
+					userProductRank.hideLoading();
+					userProductRank.setOption(userProductRankOption);
+
+					var stepTime = 2.2; //多长时间变换一次
+					changeChart(userProductRank, newData, stepTime, index, 'count');
+
+					fadeOut(loadingDom, 0, 6000); //关闭loading
+				})
+		</script>
+	</body>
+
+</html>

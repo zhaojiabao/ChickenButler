@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>111</title>
+		<style type="text/css">
+			*{
+				margin:0;
+				padding:0;
+			}
+			.main_left {
+				padding-top: 80px;
+				width: 400px;
+				float: left;
+				text-align: center;
+				font-size: 30px;
+				color: #57b663;
+				font-weight: bold;
+				font-family: "黑体";
+			}
+			
+			.main_right {
+				padding-top: 20px;
+				width: 600px;
+				float: left;
+				height: 450px;
+			}
+			.main{
+				width: 1000px;
+				margin: 0 auto;
+				height: 450px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="main">
+			<div class="main_left">
+				<h1 id="city" style="font-family: '黑体';"></h1>
+				<p style="margin: 20px 0;">近一个月</p>
+				<p style="margin: 20px 0;">鸡蛋价格走势曲线</p>
+				<p>
+					<img src="./img/logo.png" />
+				</p>
+			</div>
+			<div class="main_right">
+				<iframe id="ifr_src" width="100%" height="450" frameborder="0"></iframe>
+			</div>
+		</div>
+		<div style="padding: 0 10px;height: 80px;width: 1000px;margin: 0 auto;">
+			<hr style="border: 1px solid #57b663;width: 70%;float: left;margin-top: 2.5%;" />
+			<div style="width: 10%;float: left;margin: 0 3%;">
+				<img style="width: 100%;" src="./img/logo.png" />
+			</div>
+			<hr style="border: 1px solid #57b663;width: 13%;float: right;margin-top: 2.5%;" />
+		</div>
+		<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.common.min.js"></script>
+		<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				var search=window.location.search.split('=')
+				var area_src=decodeURIComponent(search[search.length-1]); 
+				$('#city').html(area_src)
+				var framesrc='https://api.danjiguanjia.com/map/chart/price?type=0&area='+area_src+'&date=m'
+				$('#ifr_src').attr("src", framesrc);
+			})
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,213 @@
+body {
+	margin: 0 auto;
+	overflow: hidden;
+	font-family: '微软雅黑';
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.popsty {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-color: rgba(0, 0, 0, 0.8);
+	z-index: 19891016;
+	display: none;
+}
+
+.header {
+	margin: 0 auto;
+	width: 100%;
+	height: 100vh;
+	background-color: #000;
+	position: relative;
+}
+
+.header canvas {
+	width: 100%;
+	height: auto;
+	display: inline-block;
+	vertical-align: baseline position:absolute;
+	z-index: 5;
+}
+
+.header .canvaszz {
+	width: 100%;
+	background-image: url(../img/bg.jpg);
+	background-size: 100% 100%;
+	height: 100vh;
+	position: absolute;
+	z-index: 1;
+	opacity: 0.6;
+}
+
+.loading-container {
+	width: 100vw;
+	height: 100vh;
+	position: absolute;
+	left: 0;
+	top: 0;
+	background: #0f2a42;
+	display: flex;
+	justify-content: center;
+	z-index: 99999;
+}
+
+.loading-container img {
+	margin-top: 40vh;
+	width: 100px;
+	height: 100px;
+	display: block;
+}
+
+.container {
+	color: #fff;
+	height: 100vh;
+	width: 100vw;
+	position: absolute;
+	z-index: 80;
+	top: 0;
+	left: 0;
+	background: url(../img/data.png);
+	background-size: 100vw 100vh;
+}
+
+.mt5 {
+	margin-top: 5vh;
+}
+
+.mt2 {
+	margin-top: 2vh;
+}
+
+.clock {
+	margin-top: 9.8vh;
+	text-align: center;
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 14px;
+}
+
+.text-show {
+	margin-top: 1vh;
+	font-size: 30px;
+	color: #FBF320;
+}
+
+.unit {
+	color: #59EBE8
+}
+
+.row {
+	position: absolute;
+	width: 100%;
+	top: 5vh;
+}
+
+.col-2 {
+	float: left;
+	width: 20%;
+}
+
+.text-center {
+	text-align: center;
+}
+
+.title {
+	width: 210px;
+	height: 35px;
+	background-image: url(https://datav.oss-cn-hangzhou.aliyuncs.com/uploads/images/6ac43d2d83702455ade20bcd5fab3591.png);
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+
+.left-container {
+	margin-left: 5%;
+}
+
+.middle-container {
+	float: left;
+	width: 45%;
+	margin-top: 12vh;
+}
+
+.middle-container .middle-top {
+	display: flex;
+	justify-content: center;
+}
+
+.middle-container .middle-bottom {
+	position: absolute;
+	bottom: 5vh;
+	left: 0;
+	text-align: center;
+	width: 100%;
+}
+
+.middle-container .middle-bottom .text-list {
+	color: #59EBE8;
+	font-size: 12px;
+}
+
+.top-show {
+	margin: 0 3%;
+}
+
+.top-show .title {
+	width: 175px;
+	height: 30px;
+	text-align: left;
+}
+
+.right-container {
+	float: right;
+	margin-right: 5%;
+	width: 20%;
+}
+
+.main-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+}
+
+.col-6 {
+	float: left;
+	width: 60%;
+}
+
+.box-list {
+	display: flex;
+	font-size: 12px;
+}
+
+.box {
+	flex: 1;
+	padding: 4% 0;
+	text-align: center;
+	background: url(https://datav.oss-cn-hangzhou.aliyuncs.com/uploads/images/13c890ebf14a1a23c168fc01e445932a.png);
+	background-size: 100% 100%;
+	/*border: solid 2px #00baff;
+	box-shadow: 0px 0px 20px #00baff inset;*/
+	position: relative;
+	/*background: rgba(0, 0, 0, 0.3) url(../img/box-header.png) no-repeat top center;*/
+	margin-top: 5%;
+	cursor: pointer;
+}
+
+.box .box-text {
+	margin-top: 10px;
+}
+
+.box .box-text .box-num {
+	font-size: 18px;
+	color: #FBF320;
+}

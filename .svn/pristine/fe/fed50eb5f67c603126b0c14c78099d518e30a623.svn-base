@@ -1,0 +1,41 @@
+<template>
+	<div>
+		<button v-model="show" @click="clickme">click me</button>
+			<popup v-model="show" height="100%" :hide-on-blur=true>
+				<div class="popup2">
+					<div v-model="show" @click="dbclickme">click me</div>
+					hhah
+				</div>
+			</popup>
+	</div>
+</template>
+
+<script>
+	import { Popup } from 'vux'
+
+	export default {
+		components: {
+			Popup,
+		},
+		data() {
+			return {
+				show: false
+			}
+		},
+		methods: {
+			clickme() {
+				this.show = true
+			},
+			dbclickme(){
+				this.show = false
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.popup2 {
+		padding-bottom: 15px;
+		height: 100%;
+	}
+</style>

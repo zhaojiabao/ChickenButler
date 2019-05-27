@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="css/normalize.css" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0" />
+		<title>周生产胫骨长度</title>
+	</head>
+
+	<body>
+		<div id="echarts_post" style="width:100%;height:300px;padding: 0"></div>
+		<script src="https://cdn.bootcss.com/axios/0.17.1/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.common.min.js"></script>
+		<script>
+			function GetQueryString(name) {
+				var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+				var r = window.location.search.substr(1).match(reg);
+				if(r != null) return decodeURI(r[2]);
+				return null;
+			}
+			window.onload = function() {
+				var ticket = GetQueryString('ticket');
+				var farm_id = GetQueryString('farm_id');
+				var week = GetQueryString('week');
+				var type = GetQueryString('type');
+				var batch_id = GetQueryString('batch_id');
+				var egg_num = []
+				var egg_time = []
+				axios.get('https://api.dev.danjiguanjia.com/api/v1/Sale/getWeekProd', {
+					params: {
+						'ticket': ticket,
+						'farm_id': farm_id,
+						'week': week,
+						'type': type
+					}
+				}).then(function(res) {
+					for(var i = 0; i < res.data.data.length; i++) {
+						if(res.data.data[i].batch_id == batch_id) {
+							for(var j = 0; j < res.data.data[i].tibia_length.length; j++) {
+								if(res.data.data[i].tibia_length[j] == null) {
+									res.data.data[i].tibia_length.splice(j, 1)
+									res.data.data[i].tibia_length_date.splice(j, 1)
+								}
+							}
+							egg_num = res.data.data[i].tibia_length;
+							egg_time = res.data.data[i].tibia_length_date;
+						}
+					}
+					var container = document.getElementById('echarts_post')
+					var myChart = echarts.init(container);
+					var option = {
+						grid: {
+							top: 30,
+							bottom: 30,
+							left: 10,
+							right: 10,
+							borderWidth: 0,
+							containLabel: true
+						},
+						xAxis: [{
+							type: 'category',
+							show: true,
+							axisTick: {
+								alignWithLabel: true
+							},
+							data: egg_time,
+							splitLine: {
+								show: false,
+								lineStyle: {
+									color: '#f5f7f9'
+								}
+							},
+							axisLine: {
+								show: true,
+								lineStyle: {
+									color: 'rgb(238,238,238)'
+								}
+							},
+							axisLabel: {
+								show: true,
+								textStyle: {
+									color: '#333'
+								}
+							},
+							axisTick: {
+								show: false
+							}
+						}],
+						yAxis: [{
+							type: 'value',
+							splitArea: {
+								show: true
+							}, //保留网格区域
+							show: true,
+							axisLabel: { // 坐标轴文本标签
+								show: true,
+								textStyle: { // 其余属性默认使用全局文本样式，详见TEXTSTYLE
+									color: '#333'
+								}
+							},
+							axisLine: { // 坐标轴线
+								show: false, // 默认显示，属性show控制显示与否
+							},
+							splitLine: {
+								show: false,
+								lineStyle: {
+									color: '#f5f7f9'
+								}
+							},
+							axisTick: {
+								show: false
+							}
+						}],
+						series: [{
+							type: 'line',
+							smooth: false,
+							symbol: 'circle', //拐点样式
+							symbolSize: 5, //拐点大小
+							showAllSymbol: true,
+							data: egg_num,
+							itemStyle: {
+								normal: {
+									color: 'rgb(255,255,255)',
+									lineStyle: {
+										color: '#57b663'
+									},
+									borderColor: '#57b663'
+								}
+							},
+							labelLine: {
+								normal: {
+									show: true
+								}
+							},
+						}]
+					};
+					myChart.setOption(option);
+				})
+			}
+		</script>
+	</body>
+
+</html>

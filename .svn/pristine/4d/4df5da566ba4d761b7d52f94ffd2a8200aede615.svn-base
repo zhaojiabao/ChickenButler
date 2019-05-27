@@ -1,0 +1,230 @@
+<template>
+	<div>
+		<tab :line-width=2 active-color='#57b663'>
+			<tab-item selected @on-item-click="onItemClick">政策头条</tab-item>
+			<tab-item @on-item-click="onItemClick">新闻动态</tab-item>
+			<tab-item @on-item-click="onItemClick">养殖宝典</tab-item>
+			<tab-item @on-item-click="onItemClick">微周报</tab-item>
+		</tab>
+
+		<scroller lock-x scrollbar-y height="100vh" ref="scroller" use-pullup v-model="loading_state" @on-pullup-loading="onPullupLoading">
+			<div class="box2">
+				<div class="news" v-for="news in news_list" @click="newsClick(news.cms_id)">
+					<div class="news-list">
+						<div class="news-list-left">
+							<div>
+								<img :src="news.cms_pic" alt="" />
+							</div>
+							<p class="method">{{news.source}}</p>
+							<p v-for="tag in news.tag_id">
+								<span class="state">{{tag}}</span>
+							</p>
+						</div>
+						<div class="news-list-right">
+							<h3>{{news.cms_title}}</h3>
+							<p>{{news.description}}</p>
+							<p class="data"><span class="span-time">{{news.create_time}}</span><span class="span-number"><i><img src="https://api.danjiguanjia.com/public/image/eye.png" alt="" /></i>{{news.view}}</span></p>
+							<p class="author">{{news.author}}</p>
+							<div class="praise-shoucang" @click.stop>
+								<div class="shoucang"><i><img src="https://api.danjiguanjia.com/public/image/shoucang.png" alt="" /></i>收藏</div>
+								<div class="praise"><i><img src="https://api.danjiguanjia.com/public/image/zan.png" alt="" /></i>{{news.praise}}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</scroller>
+
+	</div>
+</template>
+<script>
+	import { Tab, TabItem, Sticky, Divider, XButton, Swiper, SwiperItem, Scroller, Spinner } from 'vux'
+	import { getWeixinSign, newsData,userLogin } from "../api/api"
+	import wx from 'weixin-js-sdk';
+
+	export default {
+		components: {
+			Tab,
+			TabItem,
+			Sticky,
+			Divider,
+			XButton,
+			Swiper,
+			SwiperItem,
+			Scroller,
+			Spinner
+		},
+		data() {
+			return {
+				news_list: [],
+				item: "",
+				loading_state: { //scroller组件的加载状态
+					pullupStatus: 'default'
+				},
+				page: 1,
+				cate: [107, 2, 100, 78],
+				category: 0
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '热点资讯';
+			this.$store.state.header.right_title = "";
+			//首次填页面数据
+			this.category = this.cate[0];
+			newsData({
+				category: this.category
+			}).then(res => {
+				this.news_list = res.data.data;
+			});
+			userLogin(this.user).then(rs => {
+					if(rs.retcode == 2000) {				
+						this.$vux.toast.text("恭喜您，登录成功！");
+						this.$store.state.ticket = rs.data.ticket;
+						localStorage.setItem('ticket',rs.data.ticket);
+						//跳转回来源页
+						if(this.$store.state.source_url_name == ""){
+							this.$router.push('/p/login');
+						}else{
+							this.$router.push(this.$store.state.source_url_name);
+						}
+						
+					} else {
+						this.$vux.toast.text(rs.msg);
+					}
+				});
+		},
+		methods: {
+			//tab-item的点击事件,每次点击之后先重置到顶端
+			onItemClick(index) {
+				this.page = 1;
+				this.news_list = [];
+				this.$refs.scroller.reset();
+				this.category = this.cate[index];
+				newsData({
+					category: this.category
+				}).then(res => {
+					this.news_list = res.data.data;
+					this.$refs.scroller.reset({
+						top: 0
+					})
+				});
+			},
+			//当页面数据拉到底的时候加载数据  注意res.data.data
+			onPullupLoading() {
+				this.page++;
+				newsData({
+					category: this.category,
+					page: this.page
+				}).then(res => {
+					for(var i = 0; i < res.data.data.length; i++) {
+						this.news_list.push(res.data.data[i]);
+					}
+					this.loading_state.pullupStatus = 'default'
+				});
+			},
+			newsClick(id){
+				this.$router.push('/p/news/detail/'+id)
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.news {
+		width: 100%;
+		border-top: 0.5rem solid #f8f8ff;
+	}
+	
+	.news-list {
+		width: 90%;
+		margin: 0 auto;
+		padding: 1rem 0;
+		position: relative;
+	}
+	
+	.news-list:before,
+	.news-list:after,
+	.data:after,
+	.author:after,
+	.author:before,
+	.praise-shoucang:after,
+	.praise-shoucang:before {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.news-list-left,
+	.news-list-right,
+	{
+		float: left;
+	}
+	
+	.news-list-left {
+		width: 30%;
+		img {
+			width: 100%;
+		}
+		.state {
+			border: 1px solid #000000;
+			padding: 0rem 0.2rem;
+			border-radius: 5px;
+			line-height: 1.3em;
+			float: left;
+		}
+		.method {
+			padding: 1rem 0;
+		}
+	}
+	
+	.news-list-right p:first-of-type {
+		color: #888888;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+		padding: 1.5rem 0;
+	}
+	
+	.news-list-right {
+		width: 65%;
+		padding-left: 5%;
+		h3 {
+			color: #333333;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+		i {
+			display: inline-block;
+			width: 1rem;
+			height: 1.2rem;
+			margin-right: 0.5rem;
+			img {
+				width: 100%;
+			}
+		}
+		.span-time {
+			color: #999999;
+			float: left;
+		}
+		.span-number {
+			color: #999999;
+			float: right;
+		}
+		.author {
+			float: right;
+			padding: 1rem 0;
+		}
+		.shoucang,
+		.praise {
+			float: right;
+			padding: 0 2rem 1rem ;
+		}
+		.praise-shoucang{
+			margin-top:0.5rem ;
+			position: absolute;
+			right: 0;
+			bottom: 0;	
+		}
+	}
+</style>

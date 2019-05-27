@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>商品详情</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+				text-decoration: none;
+			}
+			
+			.good_img {
+				height: auto;
+				position: relative;
+			}
+			
+			/*.good_img img {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+			}*/
+			
+			.good_main {
+				width: 90%;
+				margin: 0 auto;
+			}
+			
+			.good_title {
+				font-size: 18px;
+				height: 30px;
+				line-height: 30px;
+				margin-bottom: 40px;
+			}
+			
+			.good_color {
+				color: #D0021B;
+			}
+			
+			.good_green {
+				color: #57b663;
+			}
+			
+			p {
+				/*height: 30px;*/
+				/*line-height: 30px;*/
+				margin: 10px 0;
+			}
+			
+			.banner {
+				position: relative;
+				height: 300px;
+				overflow: hidden;
+			}
+			
+			.banner ul li {
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: 300px;
+				width: 100%;
+			}
+			.banner ul li img{
+				width: 100%;
+				height: 300px;
+			}
+			
+			.banner ol {
+				position: absolute;
+				z-index: 100;
+				right: 10px;
+				top: 10px;
+				overflow: hidden;
+			}
+			
+			.banner ol li {
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				background-color: #ccc;
+				float: left;
+				margin: 0 5px;
+			}
+			.buy_btn{
+				height: 44px;
+				width: 100%;
+				background-color: #57B663;
+				color: #FFFFFF;
+				font-size:14px;
+				position: fixed;
+				left: 0;
+				bottom: 0;
+				border: none;
+				display: block;
+				text-align: center;
+				line-height: 44px;
+			}
+			#detail img{width: 100%;margin-top: 5px;padding-bottom: 88px;}
+		</style>
+		<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0" />
+	</head>
+
+	<body>
+		<div class="good_img">
+			<img id="goodID" style="width: 100%;" alt="" />
+			<!--<div class="banner">
+				<ul>
+					<li>
+						<a href="#"><img id="good_img_one"/></a>
+					</li>
+					<li>
+						<a href="#"><img id="good_img_two" /></a>
+					</li>
+					<li>
+						<a href="#"><img id="good_img_thr" /></a>
+					</li>
+				</ul>
+				<ol>
+					<li></li>
+					<li></li>
+					<li></li>
+				</ol>
+			</div>-->
+		</div>
+		<div class="good_img" style="width: 90%;margin: 0 auto;">
+			<div class="good_title" id="good_title"></div>
+			<p>
+				<span class="good_color">特惠价格:¥<span id="price_new"></span></span><span style="color: #CCCCCC;margin-left: 30px;">原价: <span id="price_old" style="text-decoration: line-through;"></span></span>
+			</p>
+			<p>
+				库存剩余: <span id="stock_num"></span>件
+			</p>
+			<p>
+				配送方式:快递(包邮)
+			</p>
+			<p class="good_green">发货说明</p>
+			<p id="goods_instructions"></p>
+			<p class="good_green">联系方式</p>
+			<p id="tel"></p>
+			<p class="good_green">商品详情</p>
+			<p id="detail"></p>
+			<a href="http://www.danjiguanjia.com/download/" class="buy_btn">立即购买</a>
+		</div>
+		<script src="https://cdn.bootcss.com/axios/0.17.1/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+		<script>
+			function GetQueryString(name) {
+				var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+				var r = window.location.search.substr(1).match(reg);
+				if(r != null) return unescape(r[2]);
+				return null;
+			}
+			var good_id = GetQueryString('id')
+			$(function() {
+				$('.banner ul li').eq(0).fadeIn().siblings().fadeOut();
+				$('.banner ol li').eq(0).css({
+					"background-color": "#fff"
+				}).siblings().css({
+					"background-color": "#ccc"
+				});
+				$('.banner ol li').click(function() {
+					var num = $(this).index();
+					$('.banner ul li').eq(num).fadeIn().siblings().fadeOut();
+					$('.banner ol li').eq(num).css({
+						"background-color": "#fff"
+					}).siblings().css({
+						"background-color": "#ccc"
+					});
+				})
+				var n = 0;
+
+				function lunbo() {
+					if(n > 2) {
+						n = 0
+					}
+					$('.banner ul li').eq(n).fadeIn().siblings().fadeOut();
+					$('.banner ol li').eq(n).css({
+						"background-color": "#fff"
+					}).siblings().css({
+						"background-color": "#ccc"
+					});
+					n++;
+				}
+				var timer = setInterval(lunbo, 3000);
+
+				$.ajax({
+					type: "post",
+					url: "https://api.rls.danjiguanjia.com/api/v1/getProductDetail",
+					data: {
+						'id': good_id,
+						'ticket': '5186906ba248584fa2a21ce3294c5ed4'
+					},
+					success: function(res) {
+						$('#good_title').text(res.data.goods_name)
+						$('#price_new').text(res.data.price_new)
+						$('#price_old').text('¥' + res.data.price_old)
+						$('#stock_num').text(res.data.stock_num)
+						$('#goods_instructions').text(res.data.goods_instructions)
+						$('#tel').text(res.data.tel)
+						$('#detail').html(res.data.detail)
+//						$('#good_img_one').attr("src", res.data.bigCover[0].path)
+//						$('#good_img_two').attr("src", res.data.bigCover[1].path)
+//						$('#good_img_thr').attr("src", res.data.bigCover[2].path)
+						console.log( res.data.bigCover.length)
+						if(res.data.bigCover.length!=0){
+							$('#goodID').attr("src", res.data.bigCover[0].path);
+						}
+					}
+				});
+			})
+		</script>
+	</body>
+
+</html>

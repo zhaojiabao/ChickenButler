@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>蛋鸡管家-价格查询-查询全国各地鸡蛋价格、原料价格、淘汰鸡价格！</title>
+		<link rel="stylesheet" href="css/normalize.css" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0" />
+		<meta name="format-detection" content="telephone=no, email=no" />
+	</head>
+
+	<body>
+		<div class="container">
+			<div class="container-content">
+				<div class="logo">
+					<img src="img/logo.png" />
+				</div>
+				<div class="list mb3">
+					<div class="item">
+						<h2><span id="egg_price"></span> 元/斤</h2>
+						<div class="trend">
+							<span id="egg_gains"></span> <img id="egg_img" />
+						</div>
+						<div class="title">
+							鸡蛋价格
+						</div>
+					</div>
+					<div class="item">
+						<h2><span id="corn_price"></span>元/吨</h2>
+						<div class="trend">
+							<span id="corn_gains"></span> <img id="corn_img" />
+						</div>
+						<div class="title">
+							玉米价格
+						</div>
+					</div>
+				</div>
+
+				<div class="list mb3">
+					<div class="item">
+						<h2><span id="bean_price"></span>元/吨</h2>
+						<div class="trend">
+							<span id="bean_gains"></span> <img id="bean_img" />
+						</div>
+						<div class="title">
+							豆粕价格
+						</div>
+					</div>
+					<div class="item">
+						<h2><span id="chicken_price"></span>元/斤</h2>
+						<div class="trend">
+							<span id="chicken_gains"></span> <img id="chicken_img" />
+						</div>
+						<div class="title">
+							淘汰鸡价格
+						</div>
+					</div>
+				</div>
+
+				<div class="update-time mb3">
+					更新时间：<span id="save_time"></span>
+				</div>
+
+				<div class="address mb3">
+					<img src="img/adress.png" /> <span id="address_area"></span>
+				</div>
+
+				<div class="list down-more">
+					<div class="item">
+						<a href="https://m.danjiguanjia.com/#/p/egg-index"><img src="img/btn-more.jpg" /></a>
+					</div>
+					<div class="item">
+						<a href="https://www.danjiguanjia.com//download"><img src="img/btn-download.jpg" /></a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+
+</html>
+<script src="https://cdn.bootcss.com/axios/0.17.1/axios.min.js"></script>
+<script>
+	function query(name) {
+		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+		var r = window.location.search.substr(1).match(reg);
+		if(r != null) return decodeURI(r[2]);
+		return null;
+	}
+	var area = '';
+	axios.get('http://app.jianong.com/api/ips/getRegion').then((res) => {
+		area = res.data.content.address_detail.province
+		if(area.indexOf('市')>-1){
+			area = area.slice(0, -1)
+		}
+		// 主产区
+		function getDayEggPrice() {
+			return axios.post('https://api.rls.danjiguanjia.com/api/v1/PriceSearch/getProdEggPrice?area=' + area);
+		}
+		// 原料
+		function getMaterial(type) {
+			return axios.post('https://api.rls.danjiguanjia.com/api/v1/feedprice/searchMaterial?area=' + area + '&type=' + type);
+		}
+		// 淘汰鸡
+		function getOutIndex() {
+			return axios.get('https://api.rls.danjiguanjia.com/api/v1/price/getOutIndex?area=' + area);
+		}
+		axios.all([getDayEggPrice(), getMaterial(1), getMaterial(2), getOutIndex()])
+			.then(axios.spread(function(egg, corn, bean, chicken) {
+				document.getElementById('egg_price').innerHTML = parseFloat(egg.data.data[0].price).toFixed(2);
+				var eggGains = egg.data.data[0].gains.toFixed(2);
+				document.getElementById('egg_gains').innerHTML = eggGains;
+				document.getElementById('save_time').innerHTML = egg.data.data[0].savetime
+				if(eggGains > 0) {
+					document.getElementById('egg_gains').style.color = "#D0021B"
+					document.getElementById('egg_img').src = 'img/up.png'
+				} else if(eggGains == 0) {
+					document.getElementById('egg_gains').style.color = "black"
+					document.getElementById('egg_img').src = 'img/flat.png'
+				} else {
+					document.getElementById('egg_gains').style.color = "#57b663"
+					document.getElementById('egg_img').src = 'img/down.png'
+				}
+
+				document.getElementById('corn_price').innerHTML = parseFloat(corn.data.data.search[0].price).toFixed(2);
+				var cornGains = corn.data.data.search[0].gains.toFixed(2);
+				document.getElementById('corn_gains').innerHTML = cornGains;
+				if(cornGains > 0) {
+					document.getElementById('corn_gains').style.color = "#D0021B"
+					document.getElementById('corn_img').src = 'img/up.png'
+				} else if(cornGains == 0) {
+					document.getElementById('corn_gains').style.color = "black"
+					document.getElementById('corn_img').src = 'img/flat.png'
+				} else {
+					document.getElementById('corn_gains').style.color = "#57b663"
+					document.getElementById('corn_img').src = 'img/down.png'
+				}
+
+				document.getElementById('bean_price').innerHTML = parseFloat(bean.data.data.search[0].price).toFixed(2);
+				var beanGains = bean.data.data.search[0].gains.toFixed(2);
+				document.getElementById('bean_gains').innerHTML = beanGains;
+				if(beanGains > 0) {
+					document.getElementById('bean_gains').style.color = "#D0021B"
+					document.getElementById('bean_img').src = 'img/up.png'
+				} else if(beanGains == 0) {
+					document.getElementById('bean_gains').style.color = "black"
+					document.getElementById('bean_img').src = 'img/flat.png'
+				} else {
+					document.getElementById('bean_gains').style.color = "#57b663"
+					document.getElementById('bean_img').src = 'img/down.png'
+				}
+
+				document.getElementById('chicken_price').innerHTML = parseFloat(chicken.data.data.search[0].price).toFixed(2);
+				var chickenGains = chicken.data.data.search[0].gains.toFixed(2);
+				document.getElementById('chicken_gains').innerHTML = chickenGains;
+				if(chickenGains > 0) {
+					document.getElementById('chicken_gains').style.color = "#D0021B"
+					document.getElementById('chicken_img').src = 'img/up.png'
+				} else if(chickenGains == 0) {
+					document.getElementById('chicken_gains').style.color = "black"
+					document.getElementById('chicken_img').src = 'img/flat.png'
+				} else {
+					document.getElementById('chicken_gains').style.color = "#57b663"
+					document.getElementById('chicken_img').src = 'img/down.png'
+				}
+
+				document.getElementById('address_area').innerHTML = area
+			}));
+	})
+</script>
+<script src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+<script>
+	wx.config({
+		debug: false,
+		appId: 'wx12536d94f63c8426',
+		timestamp: "1514193424",
+		nonceStr: "gm0zHBqlFjMo6coV",
+		signature: "bff6e221fef1fbb5f5f361fc5b3bdf32f22a0ecf",
+		jsApiList: [
+			'checkJsApi',
+			'onMenuShareTimeline',
+			'onMenuShareAppMessage',
+			'onMenuShareQQ',
+			'onMenuShareWeibo'
+		]
+	});
+	wx.ready(function() {
+		var links = encodeURIComponent('https://app.danjiguanjia.com/pages/sharePrice.html?area=' + area)
+		var title = "蛋鸡管家-价格查询-查询全国各地鸡蛋价格、原料价格、淘汰鸡价格！";
+		var link = links;
+		var imgUrl = "https://www.danjiguanjia.com/Uploads/Picture/2017-07-26/59782079e0aac.jpg";
+		wx.onMenuShareTimeline({
+			title: title,
+			link: link,
+			imgUrl: imgUrl
+		});
+		wx.onMenuShareAppMessage({
+			title: title,
+			desc: ' 天天查价格，掌握最新价格行情信息动态',
+			link: link,
+			imgUrl: imgUrl
+		});
+		wx.onMenuShareQQ({
+			title: title,
+			link: link,
+			imgUrl: imgUrl
+		});
+		wx.onMenuShareWeibo({
+			title: title,
+			link: link,
+			imgUrl: imgUrl
+		});
+	});
+</script>
+<style>
+	body {
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		font-family: "微软雅黑";
+		font-size: 14px;
+	}
+	
+	.container {
+		height: 100vh;
+		background-image: url(img/share-bg.jpg);
+		background-size: 100% 100%;
+	}
+	
+	.container-content {
+		text-align: center;
+	}
+	
+	.container-content .logo {
+		width: 30%;
+		margin: 0 auto;
+		padding-top: 16vh;
+		padding-bottom: 3vh;
+	}
+	
+	.container-content .logo img {
+		width: 100%;
+	}
+	
+	.list {
+		overflow: hidden;
+		width: 70%;
+		margin: auto;
+	}
+	
+	.list .item {
+		float: left;
+		width: 50%;
+	}
+	
+	.list .item h2 {
+		font-size: 16px;
+	}
+	
+	.list .trend {
+		margin-bottom: 1.2vh;
+	}
+	
+	.list .trend img {
+		width: 10%;
+	}
+	
+	.update-time {
+		margin-top: 5vh;
+	}
+	
+	.address,
+	.update-time {
+		font-size: 12px;
+	}
+	
+	.address img {
+		width: 3.5%;
+	}
+	
+	.mb3 {
+		margin-bottom: 3vh;
+	}
+	
+	.down-more img {
+		width: 80%;
+	}
+</style>

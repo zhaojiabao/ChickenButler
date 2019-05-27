@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>全国图表</title>
+		<link rel="stylesheet" type="text/css" href="../css/new-egg-main.css" />
+		<script src="https://cdn.bootcss.com/babel-polyfill/7.0.0-beta.40/polyfill.min.js"></script>
+	</head>
+
+	<body>
+		<div id="main">
+			<div class="local-price">
+				<div class="local-price-title clear-float">
+					<span style="float: left;">全国走势</span>
+					<div class="local-price-type" :class="{'price-select':egg.done}" v-for="(egg,index) in loca_egg_price" :key='index' @click="localClickPriceTab(index)" v-text='egg.name'></div>
+				</div>
+			</div>
+			<div class="loading-warp">
+				<div class="main" id="echartsone"></div>
+				<div class="loading-main" v-if='is_show'>
+					<img src="../img/timg.gif" alt="" />
+				</div>
+			</div>
+
+			<ul class="ul-date clear-float">
+				<li v-for='(date,index) in local_date_tab' :key='index' :class="{'date-select':date.done}" @click="localClickDateTab(index,date.day)" v-text='date.name'></li>
+			</ul>
+		</div>
+		<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.min.js"></script>
+		<script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/vue/2.5.17-beta.0/vue.min.js"></script>
+		<script type="text/javascript">
+			new Vue({
+				el: '#main',
+				data: {
+					msg: 'hello',
+					loca_egg_price: [{
+						name: '原料走势',
+						done: false
+					}, {
+						name: '蛋价走势',
+						done: true
+					}],
+					local_date_tab: [{
+						name: '近1月',
+						done: true,
+						day: 30
+					}, {
+						name: '近3月',
+						done: false,
+						day: 90
+					}, {
+						name: '近6月',
+						done: false,
+						day: 180
+					}, {
+						name: '近1年',
+						done: false,
+						day: 295
+					}],
+					local_day: 30,
+					local_xdata: [],
+					local_ydata: [],
+					series: [],
+					local_type_tab: 1,
+					local_chart_title: ['鸡蛋价格'],
+					is_show: false,
+				},
+				methods: {
+					localClickPriceTab(index) {
+						this.local_xdate = [];
+						this.local_ydate = [];
+						this.loca_egg_price.forEach((item, index) => {
+							item.done = false
+						})
+						this.loca_egg_price[index].done = true;
+						this.local_type_tab = index; //当前选中的是那个 0 为原料 1为鸡蛋
+						if(index == 0) {
+							this.getLocalMarChart();
+							this.local_chart_title = ['玉米价格', '豆粕价格']
+							this.local_type_tab = 2;
+						} else {
+							this.getLocalEggChart();
+							this.local_chart_title = ['鸡蛋价格'];
+							this.local_type_tab = 1;
+						}
+					},
+					localClickDateTab(index, day) {
+						this.local_date_tab.forEach((item, index) => {
+							item.done = false;
+						})
+						this.local_day = day;
+						if(this.local_type_tab == 2) {
+							this.getLocalMarChart();
+						} else {
+							this.getLocalEggChart();
+						}
+						this.local_date_tab[index].done = true;
+					},
+					//获取鸡蛋曲线
+					getLocalEggChart() {
+						this.local_xdata = [];
+						this.local_ydata = [];
+						this.is_show = true;
+						axios.get('https://api.dev.danjiguanjia.com/api/v2/PriceSearch/allDayEggAvgPrice', {
+							params: {
+								ticket: this.getQueryString('ticket'),
+								day: this.local_day
+							}
+						}).then(res => {
+							this.local_xdata = res.data.data.date;
+							this.local_ydata = res.data.data.price;
+							this.drawLine();
+							this.is_show = false;
+						})
+					}, //获取原料曲线
+					getLocalMarChart() {
+						this.local_xdata = [];
+						this.local_ydata = [];
+						this.is_show = true;
+						axios.get('https://api.dev.danjiguanjia.com/api/v2/PriceSearch/allDayAvgPrice', {
+							params: {
+								ticket: this.getQueryString('ticket'),
+								day: this.local_day
+							}
+						}).then(res => {
+							this.local_xdata = res.data.data.date;
+							this.local_ydata = res.data.data;
+							this.drawLine();
+							this.is_show = false;
+						})
+					},
+					drawLine() {
+						this.series = [];
+						if(this.local_type_tab == 1) {
+							this.series.push({
+								data: this.local_ydata,
+								type: 'line',
+								name: '鸡蛋价格',
+								symbol: 'circle',
+								symbolSize: 5, //图标尺寸
+								lineStyle: {
+									normal: {
+										color: "#57b663" //连线颜色
+									}
+								},
+								itemStyle: {
+									normal: {
+										color: "#57b663", //图标颜色
+									}
+								}
+							}, {
+								data: [],
+								type: 'line',
+								name: '',
+								symbol: 'circle',
+								symbolSize: 5, //图标尺寸
+								lineStyle: {
+									normal: {
+										color: "#57b663" //连线颜色
+									}
+								},
+								itemStyle: {
+									normal: {
+										color: "#57b663", //图标颜色
+									}
+								}
+							})
+						} else {
+							this.series.push({
+								data: this.local_ydata.cornprice,
+								type: 'line',
+								name: '玉米价格',
+								symbol: 'circle',
+								symbolSize: 5, //图标尺寸
+								lineStyle: {
+									normal: {
+										color: "#F5A623" //连线颜色
+									}
+								},
+								itemStyle: {
+									normal: {
+										color: "#F5A623", //图标颜色
+									}
+								}
+							}, {
+								data: this.local_ydata.mealprice,
+								type: 'line',
+								name: '豆粕价格',
+								symbol: 'circle',
+								symbolSize: 5, //图标尺寸
+								lineStyle: {
+									normal: {
+										color: "#FF4301" //连线颜色
+									}
+								},
+								itemStyle: {
+									normal: {
+										color: "#FF4301", //图标颜色
+									}
+								}
+							})
+						}
+						var myChart = echarts.init(document.getElementById('echartsone'));
+						myChart.setOption({
+							grid: {
+								top: 40,
+								bottom: 30,
+								left: 50,
+								right: 30,
+							},
+							tooltip: {
+								trigger: 'axis',
+							},
+							legend: {
+								show: true,
+								data: this.local_chart_title,
+								textStyle: {
+									color: '#999',
+								},
+								top: '10',
+								right: '0',
+								itemGap: 1,
+								itemWidth: 6,
+								itemHeight: 6,
+							},
+							xAxis: {
+								type: 'category',
+								data: this.local_xdata,
+								nameTextStyle: {
+									color: "#999"
+								},
+								axisLine: {
+									show: false
+								},
+								axisTick: {
+									show: false
+								},
+								axisLabel: {
+									color: '#999'
+								}
+							},
+							yAxis: {
+								type: 'value',
+								name: '单位（元／斤）',
+								nameLocation: 'end',
+								nameTextStyle: {
+									color: "#999"
+								},
+								axisLine: {
+									show: false
+								},
+								axisTick: {
+									show: false
+								},
+								axisLabel: {
+									color: '#999'
+								},
+								scale: true,
+								splitLine: {
+									lineStyle: {
+										color: '#eee'
+									}
+								}
+							},
+							series: this.series
+						})
+					},
+					getQueryString(name) {
+						var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+						var r = window.location.search.substr(1).match(reg);
+						if(r != null) {
+							return unescape(r[2]);
+						}
+						return null;
+					}
+				},
+				mounted() {
+					this.getLocalEggChart();
+				},
+				//								watch: {
+				//									'local_day': function() {
+				//										this.getLocalEggChart();
+				//										this.getLocalMarChart();
+				//									}
+				//								}
+			})
+		</script>
+	</body>
+
+</html>

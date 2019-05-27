@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <meta name="author" content="wangsiyuan">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="css/runner.css"/>
+    <script src="https://api.danjiguanjia.com/public/static/active/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="https://api.danjiguanjia.com/public/static/js/jquery.rotate.min.js"></script>
+    <script type="text/javascript" src="https://api.danjiguanjia.com/public/static/js/jquery.alert.js"></script>
+    <script src="js/runner.js"></script>
+    <title>幸运大转盘</title>
+</head>
+<body>
+<canvas hidden="hidden" id="hidden" style="width:400px; height: 400px;"></canvas>
+<div class="r-outer">
+    <div class="runner">
+        <img src="https://api.danjiguanjia.com/public/static/active/img/title_1.png" width="600" style="height: auto;position: absolute;top:-30px" />
+        <canvas id="canvas" width="600px" height="600px" style="width:300px;height:300px;"></canvas>
+        <a href="javascript:void(0)" class="playbtn"></a>
+    </div>
+    <input type="hidden" name="uid" id="uid" value="">
+    <p>今日已有<span class="playnum">114</span>人参与</p>
+    <div class="r-text">
+        <div class="rules_box" id="box1">
+            <div class="rules_content" id="myscoll">
+
+            </div>
+        </div>
+        <div class="rules_box" id="box2">
+            <h5 class="rules_title">活动规则:</h5>
+            <div class="rules_content">
+                活动开启，每天5次任性转！                <!--   每日三次抽奖机会，第一次为免费抽取，第二次消耗5积蛋，第三次消耗10积蛋。
+                } -->
+                <!--"感恩节" 11月24日至30日 使用大转盘无需消耗积蛋。"蛋鸡管家感谢有你"-->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="g-bg"></div>
+<input type="hidden" name="uid" value='' id="uid" >
+<div class="modal_box">
+    <div class="modal_panel">
+        <!--<div class="modal_tips">
+            恭喜您获得管家U盘!
+        </div>-->
+        <div class="input_group">
+            <input type="text" placeholder="请填写您的姓名" name="name">
+        </div>
+        <div class="input_group">
+            <textarea placeholder="请填写您的详细收货地址"  name = "address" id= "address"></textarea>
+        </div>
+        <div class="input_group">
+            <input type="text" placeholder="请填写您的邮编"  name="email">
+        </div>
+        <div class="input_group">
+            <input type="text" placeholder="请填写您的手机号码" name="mobile">
+        </div>
+        <div class="input_group">
+            <button id="submit">提交</button>
+        </div>
+    </div>
+    <div class="modal_bg"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<template>
+	<!--该页面是我的论坛页面-->
+	<div class="my-forum">
+		<div style="padding: 1rem 0;" class="forum-tab-fix">
+			<button-tab>
+				<button-tab-item selected @on-item-click="onItemClick">我发出的帖子</button-tab-item>
+				<button-tab-item @on-item-click="onItemClick">我参与的帖子</button-tab-item>
+				<button-tab-item @on-item-click="onItemClick">好友的帖子</button-tab-item>
+			</button-tab>
+		</div>
+		<div class="forum-tab-fixed">
+			<div class="my-forum-main" @click="forumClick(my_forum.id)" v-for="(my_forum,index) in my_forum_list">
+				<p class="title">{{my_forum.title}}</p>
+				<p v-html="urlHtmlReplace(my_forum.content)"></p>
+				<p class="cover" v-if="my_forum.cover.length > 0">
+					<img :src="cov" v-for="(cov,index) in my_forum.cover" />
+				</p>
+				<ul class="tag-img-time">
+					<li>
+						<span v-for="(tag,index) in my_forum.tag_id" v-if="index<2">{{tag}}</span>
+					</li>
+					<li>
+						<img src="../../assets/jing.png" v-if="my_forum.type==1 || my_forum.is_jing==1" />
+						<img src="../../assets/pu.png" v-else-if="my_forum.type==3" />
+						<img src="../../assets/wen.png" v-else="my_forum.type==2" />
+					</li>
+					<li> <i><img src="../../assets/time.png" /></i>
+						<span>{{my_forum.create_time}}</span>
+					</li>
+				</ul>
+				<div class="reply">
+					<span>回复:{{my_forum.reply_time}}</span>
+					<span>{{my_forum.commit}}回</span>
+				</div>
+				<ul class="forum-main-ul" @click.stop>
+					<li :class="{'praise':my_forum.is_praise == 1}">
+						<i>
+								<img @click="isPraise(my_forum)" src="../../assets/zan.png" alt="" v-if="my_forum.is_praise==0" />
+								<img @click="notPraise(my_forum)" src="../../assets/zanzan.png" alt="" v-else />
+							</i>
+						<span>{{my_forum.praise}}</span>
+					</li>
+					<li @click="delPost(index)" v-if="my_forum.is_del_report ==1">
+						<i>
+								<img src="../../assets/del.png" alt="" />
+							</i>
+						<span>删除</span>
+					</li>
+					<li v-else>
+						<div :class="{'praise':my_forum.is_report == 1}">
+							<div @click="showPopupPickerFun(my_forum)" class="jubao" v-if="my_forum.is_report==0">
+								<img src="../../assets/jubao.png" alt="" />
+								<span>举报</span>
+								<!--<actionsheet v-model="show" :menus="menus" @on-click-menu="clickReport"></actionsheet>-->
+							</div>
+							<div class="jubao" v-else>
+								<img @click="cancleReport1(my_forum)" src="../../assets/yijubao.png" alt="" />
+								<span>已举报</span>
+							</div>
+						</div>
+					</li>
+
+					<li :class="{'praise':my_forum.is_favorite == 1}">
+						<i>
+								<img @click="isFavorite(my_forum)"  src="../../assets/shoucang1.png" alt="" v-if="my_forum.is_favorite==0" />
+								<img @click="notFavorite(my_forum)" src="../../assets/shoucang.png" alt="" v-else />
+							</i>
+						<span>{{my_forum.favorite}}</span>
+					</li>
+				</ul>
+				<hr />
+			</div>
+		</div>
+	
+		<mugen-scroll :handler="fetchData" :should-handle="!loading" scroll-container="wrap" v-show="mugen" class="loadings">
+			loading...
+		</mugen-scroll>
+		
+		
+	</div>
+</template>
+<script>
+	import { ButtonTab, ButtonTabItem, Scroller, PopupPicker, Actionsheet } from 'vux'
+	import { myForumList, likeCommunity, unlikeCommunity, favoritePost, delFavoritePost, addReport, cancleReport, delCommunity } from "../../api/api"
+	import MugenScroll from 'vue-mugen-scroll'
+	export default {
+		components: {
+			ButtonTab,
+			ButtonTabItem,
+			Scroller,
+			PopupPicker,
+			MugenScroll,
+			Actionsheet
+		},
+		data() {
+			return {
+				my_forum_list: [],
+				types: [1, 2, 3],
+				scroller: true,
+				page: 0,
+				showPopupPicker: false,
+				current_post: {},
+				post: false,
+				loading: false,
+				mugen: false,
+				show: false,
+				menus: [{
+					label: '<p style="color:#ccc;font-size:12px;font-family: 微软雅黑">举报内容</p>',
+					type: 'info'
+				}, {
+					label: '传播谣言',
+					value: '传播谣言'
+				}, {
+					label: '诈骗钱财',
+					value: '诈骗钱财'
+				}, {
+					label: '存在侵权行为',
+					value: '存在侵权行为'
+				}, {
+					label: '不适当的内容',
+					value: '不适当的内容'
+				}]
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "我的论坛"
+			this.$store.state.header.right_title = "我的消息";
+			this.$store.state.header.right_url = "/p/mymessage";
+			this.type = this.types[0]
+		},
+		methods: {
+			onItemClick(index) {
+				this.page = 1;
+				this.my_forum_list = [];
+				this.type = this.types[index];
+				myForumList({
+					type: this.type,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					this.my_forum_list = res.data.res;
+					if(res.data.res.length > 5) {
+						this.mugen = true
+					} else {
+						this.mugen = false
+					}
+				});
+			},
+			fetchData() {
+				this.page++;
+				myForumList({
+					type: this.type,
+					page: this.page,
+					ticket: this.$store.state.ticket
+				}).then(res => {
+					console.log(res.data.res.length);
+					for(var i = 0; i < res.data.res.length; i++) {
+						this.my_forum_list.push(res.data.res[i]);
+					}
+				});
+			},
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			forumClick(id) {
+				this.$router.push('/p/forum/post-detail/' + id);
+			},
+			isPraise(my_forum) {
+				my_forum.is_praise = 1;
+				my_forum.praise++;
+				likeCommunity({
+					ticket: this.$store.state.ticket,
+					community_id: my_forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			notPraise(my_forum) {
+				my_forum.is_praise = 0;
+				my_forum.praise--;
+				unlikeCommunity({
+					ticket: this.$store.state.ticket,
+					community_id: my_forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			isFavorite(my_forum) {
+				my_forum.is_favorite = 1;
+				my_forum.favorite++;
+				favoritePost({
+					ticket: this.$store.state.ticket,
+					community_id: my_forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			notFavorite(my_forum) {
+				my_forum.is_favorite = 0;
+				my_forum.favorite--;
+				delFavoritePost({
+					ticket: this.$store.state.ticket,
+					community_id: my_forum.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			onHidePopup() {
+				this.showPopupPicker = false;
+			},
+			showPopupPickerFun(post) {
+				this.current_post = post;
+				this.show = true;
+			},
+			//取消举报
+			cancleReport1(post) {
+				this.show = false;
+				post.is_report = 0;
+				cancleReport({
+					ticket: this.$store.state.ticket,
+					type: 1,
+					community_id: post.id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('canhus');
+					}
+				})
+			},
+			clickReport(key) {
+				// 举报的帖子,举报内容
+				this.current_post.is_report = 1;
+				addReport({
+					ticket: this.$store.state.ticket,
+					type: 1,
+					community_id: this.current_post.id,
+					reason: key
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+
+			},
+			//删除帖子
+			delPost(index) {
+				var _this = this;
+				this.$vux.confirm.show({
+					title: '您是否确认删除该帖子?',
+					onCancel() {},
+					onConfirm() {
+						delCommunity({
+							ticket: _this.$store.state.ticket,
+							community_id: _this.my_forum_list[index].id
+						}).then(res => {
+							if(res.retcode == "2000") {
+								_this.$vux.toast.text(res.msg);
+								_this.my_forum_list.splice(index, 1);
+							} else {
+								_this.$vux.toast.text('');
+							}
+						})
+					}
+				})
+			},
+
+		}
+	}
+</script>
+
+<style lang="less" >
+	.my-forum {
+		.forum-tab-fix {
+			background-color: #FFFFFF;
+			position: fixed;
+			width: 90%;
+			z-index: 10;
+			top: 47px;
+			left: 5%;
+		}
+		.loadings {
+			width: 90%;
+			margin: 0 auto;
+			text-align: center;
+		}
+		.forum-tab-fixed {
+			margin-top: 57px;
+		}
+		.jubao {
+			img {
+				display: inline-block;
+				height: 1rem;
+				width: 1rem;
+			}
+		}
+		.forum-main-ul:after,
+		.reply:after,
+		ul.tag-img-time:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+		.title {
+			font-size: 1.2rem;
+		}
+		width: 90%;
+		margin: 0 auto;
+		.my-forum-main {
+			p {
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				word-break: break-all;
+			}
+			.cover {
+				height: 7rem;
+				img {
+					width: 20%;
+					height: 5rem;
+					padding: 1rem 0.5rem;
+				}
+			}
+			p:first-child {
+				font-weight: bold;
+				text-align: center;
+				padding: 0.5rem 0;
+			}
+			ul.tag-img-time {
+				padding-top: 0.5rem;
+				li {
+					float: left;
+					width: 33.33%;
+				}
+				li:first-child {
+					span {
+						border: 1px solid #CCCCCC;
+						color: #CCCCCC;
+						padding: 0rem 0.5rem;
+						border-radius: 5px;
+						margin-left: 0.3rem;
+					}
+				}
+				li:nth-child(2) {
+					text-align: center;
+					img{
+						display: inline;
+						width: 1.5rem;
+						height: 1.5rem;
+					}
+				}
+				li:last-child {
+					text-align: right;
+					color: orange;
+				}
+			}
+			.reply {
+				span:first-child {
+					float: left;
+				}
+				span:last-child {
+					float: right;
+				}
+			}
+			.forum-main-ul {
+				padding-top: 0.5rem;
+			}
+			.forum-main-ul li {
+				float: left;
+				width: 33%;
+				i {
+					display: inline-block;
+					width: 1rem;
+					height: 0.3rem;
+					img {
+						width: 100%;
+					}
+				}
+				span {
+					padding-left: 0.5rem;
+				}
+			}
+			.forum-main-ul li:nth-child(2) {
+				text-align: center;
+			}
+			.forum-main-ul li:last-child {
+				text-align: right;
+			}
+		}
+		.praise {
+			color: #FF0000;
+		}
+		.weui-mask {
+			background: rgba(0, 0, 0, 0.05)!important;
+		}
+		.vux-actionsheet-menu-default {
+			color: #1d70e4 !important;
+			font-family: "微软雅黑";
+		}
+	}
+</style>

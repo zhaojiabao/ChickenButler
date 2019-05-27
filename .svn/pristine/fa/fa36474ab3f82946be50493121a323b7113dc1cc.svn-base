@@ -1,0 +1,289 @@
+<template>
+	<div class="price-forecast">
+
+		<sale-address></sale-address>
+
+		<div class="row">
+			<div class="triangle-right">
+
+			</div>
+			<div class="col-title">
+				您预测明日蛋价会
+			</div>
+		</div>
+
+		<checker v-model="forecast" default-item-class="forecast-item">
+			<template v-for="(f,i) in forecast_text" v-if="i>0">
+				<checker-item :value="i" @on-item-click="onItemClick">
+					<label class="checkbox" :class="{'checkbox-checked':forecast_init == i}"></label>
+					<span>{{ f }}</span>
+				</checker-item>
+			</template>
+		</checker>
+
+		<hr />
+
+		<div class="row">
+			<div class="triangle-right">
+
+			</div>
+			<div class="col-title">
+				明日蛋价预测统计
+			</div>
+		</div>
+		<IEcharts :option="pie" :loading="loading" @ready="onReady" @click="onClick" class="echarts" style="width:100%;height:40vh;"></IEcharts>
+		<hr />
+
+		<div class="row">
+			<div class="triangle-right">
+
+			</div>
+			<div class="col-title">
+				蛋价预测规则与奖励
+			</div>
+		</div>
+		<div class="rule-text">
+
+			<p>{{ $store.state.forecast.rule }}</p>
+
+			<router-link to="/p/forecast-active">查看活动进程</router-link>
+
+		</div>
+
+		<router-link to="/p/forecast-record" class="forecast-btn theme-bg">
+			预测记录
+		</router-link>
+	</div>
+</template>
+
+<script>
+	import IEcharts from 'vue-echarts-v3/src/full.vue';
+	import { Checker, CheckerItem } from 'vux';
+	import { predict, toPredict } from '../../api/EggPrice'
+	import SaleAddress from './SaleAddress'
+
+	export default {
+		components: {
+			Checker,
+			CheckerItem,
+			IEcharts,
+			SaleAddress
+		},
+		data() {
+			return {
+				forecast: 0,
+				loading: false,
+				is_guess: false,
+				forecast_init: 0,
+				rule: '',
+				forecast_text: ['', '跌', '平', '涨'],
+				pie: {
+					tooltip: {
+						trigger: 'item',
+						formatter: "百分比：{d}%"
+					},
+					legend: {
+						x: 'center',
+						y: 'bottom',
+						data: ['涨百分比', '跌百分比', '平百分比']
+					},
+					series: [{
+						name: '预测比例',
+						type: 'pie',
+						radius: ['30%', '70%'],
+						data: [{
+								value: 0,
+								name: '涨百分比',
+								itemStyle: {
+									normal: {
+										color: '#f23433'
+									}
+								}
+							},
+							{
+								value: 0,
+								name: '跌百分比',
+								itemStyle: {
+									normal: {
+										color: '#56b563'
+									}
+								}
+							},
+							{
+								value: 0,
+								name: '平百分比',
+								itemStyle: {
+									normal: {
+										color: '#3c3c3c'
+									}
+								}
+							}
+						],
+						itemStyle: {
+							emphasis: {
+								shadowBlur: 10,
+								shadowOffsetX: 0,
+								shadowColor: 'rgba(0, 0, 0, 0.5)'
+							}
+						}
+					}]
+				}
+			}
+		},
+		watch:{
+			'$store.state.egg_price.area': 'init'
+		},
+		mounted() {
+			this.$store.state.header.title = '蛋价预测';
+			this.init();
+		},
+		methods: {
+			init() {
+				predict({
+					area: this.$store.state.egg_price.area,
+					ticket: localStorage.getItem('ticket')
+				}).then(rs => {
+					if(rs.retcode == 2000) {
+						this.pie.series[0].data[0].value = parseFloat(rs.data.up).toFixed(2);
+						this.pie.series[0].data[1].value = parseFloat(rs.data.down).toFixed(2);
+						this.pie.series[0].data[2].value = parseFloat(rs.data.flat).toFixed(2);						
+						this.forecast = parseInt(rs.data.predict);
+						this.forecast_init = parseInt(rs.data.predict);
+						this.$store.state.forecast.rule = rs.data.rule;
+						this.is_guess = rs.data.guess == 1;
+					}
+				})
+			},
+			onReady(instance) {
+				//console.log(instance);
+			},
+			onClick(event, instance, echarts) {
+
+			},
+			//预测被点击
+			onItemClick(value, disabled) {
+				if(this.is_guess) {
+					this.$vux.toast.text('您已经预测过了，不可再次预测！');
+					this.forecast = this.forecast_init;
+					return false;
+				}
+				let _this = this;
+				this.$vux.confirm.show({
+					title: '确认信息',
+					content: '每天只有一次预测机会，您是否确认预测为' + this.forecast_text[value] + '吗？',
+					onCancel() {
+
+					},
+					onConfirm() {
+						toPredict({
+							area: _this.$store.state.egg_price.area,
+							ticket: localStorage.getItem('ticket'),
+							predict: value
+						}).then(rs => {
+							_this.forecast_init = value;
+							if(rs.retcode == 2000) {
+								_this.is_guess = true;
+								_this.$vux.toast.text('预测成功');
+							} else {
+								_this.$vux.toast.text(rs.msg);
+							}
+						})
+					}
+				})
+
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	.checkbox {
+		background-color: #FFF;
+		border: 1px solid #C1CACA;
+		/*box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05);*/
+		padding: 8px;
+		border-radius: 5px;
+		display: inline-block;
+		margin-right: 6px;
+		position: relative;
+	}
+	
+	.checkbox-checked {
+		border: 1px solid #57B663;
+		&:after {
+			content: '\2714';
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			color: #57B663;
+			width: 100%;
+			text-align: center;
+			font-size: 14px;
+			padding-bottom: 0px;
+			vertical-align: text-top;
+		}
+	}
+	
+	.price-forecast {
+		margin: 0 15px;
+		.row {
+			margin: 15px 0;
+			position: relative;
+			.triangle-right {
+				width: 0;
+				height: 0;
+				border-top: 8px solid transparent;
+				border-left: 16px solid #57B663;
+				border-bottom: 8px solid transparent;
+				position: absolute;
+				left: 0px;
+			}
+			.col-title {
+				font-size: 16px;
+				font-weight: bold;
+				margin-left: 30px;
+			}
+		}
+		.rule-text {
+			height: 30vh;
+			p {
+				font-size: 14px;
+			}
+			a {
+				display: block;
+				text-align: center;
+				color: #0A64E1;
+				font-size: 16px;
+				margin-top: 7px;
+			}
+		}
+		.forecast-btn {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			text-align: center;
+			width: 100%;
+			height: 50px;
+			line-height: 50px;
+			font-size: 14px;
+			display: block;
+		}
+		.vux-checker-box {
+			margin: 0 2vw;
+			text-align: center;
+		}
+		.forecast-item {
+			display: inline-block;
+			font-size: 14px;
+			padding: 2vw 4vw;
+			/*border: 1px solid #ddd;
+			border-radius: 5px;*/
+			margin: 0 2vw;
+		}
+		.forecast-item-selected {
+			background: #56B563;
+			color: #fff;
+			border: none;
+		}
+	}
+</style>

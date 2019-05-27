@@ -1,0 +1,89 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+
+import Layout from '@/views/common/layout'
+import Login from '@/components/Login'
+
+import Index from '@/components/Index'
+
+//蛋价查询
+import EggPrice from '@/components/EggPrice'
+import SearchResult from '@/views/eggprice/SearchResult' //搜索结果
+import PriceForecast from '@/views/eggprice/PriceForecast' //蛋价预测
+import ForecastRecord from '@/views/eggprice/ForecastRecord' //预测记录
+import ForecastActive from '@/views/eggprice/ForecastActive' //预测活动
+import PriceChart from '@/views/eggprice/PriceChart' //价格曲线
+import MaterialChart from '@/views/eggprice/MaterialChart' //价格曲线
+
+//资讯
+import NewsDetail from '@/views/news/detail' //资讯详情
+
+//秒杀商品
+import SeckillGoodsDetail from '@/views/seckill/GoodsDetail' //商品详情
+
+//活动页面
+import PB_coolSummer from '@/views/active/PB_coolSummer' //清凉一夏
+
+Vue.use(Router)
+
+export default new Router({
+	routes: [{
+			path: '/',
+			name: 'Index',
+			component: Index
+		},
+		{
+			path: '/p',
+			component: Layout,
+			children: [{
+				path: 'login',
+				name: 'login',
+				component: Login
+			}, {
+				path: 'regist',
+				name: 'regist',
+				component: Login
+			}, {
+				path: 'egg-price',
+				name: 'egg-price',
+				component: EggPrice
+			}, {
+				path: 'search-result/:area',
+				name: 'SearchResult',
+				component: SearchResult
+			}, {
+				path: 'price-forecast',
+				name: 'PriceForecast',
+				component: PriceForecast
+			}, {
+				path: 'forecast-record',
+				name: 'ForecastRecord',
+				component: ForecastRecord
+			}, {
+				path: 'forecast-active',
+				name: 'ForecastActive',
+				component: ForecastActive
+			}, {
+				path: 'price-chart',
+				name: 'PriceChart',
+				component: PriceChart
+			}, {
+				path: 'material-chart',
+				name: 'MaterialChart',
+				component: MaterialChart
+			}, {
+				path: 'seckill/goods-detail/:time_id/:good_id',
+				name: 'seckill-goods-detail',
+				component: SeckillGoodsDetail
+			}, {
+				path: 'news/detail/:news_id',
+				name: 'news-detail',
+				component: NewsDetail
+			}]
+		}, {
+			path: '/cool-summer',
+			name: 'CoolSummer',
+			component: PB_coolSummer
+		}
+	]
+})

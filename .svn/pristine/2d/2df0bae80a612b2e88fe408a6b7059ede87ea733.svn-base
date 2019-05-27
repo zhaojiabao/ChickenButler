@@ -1,0 +1,73 @@
+<template>
+
+	<div class="header" v-show="is_show_header">
+		<x-header 
+			:left-options="{showBack: $store.state.header.showBack,backText:$store.state.header.backText}" 
+			:class="{'header-border':$store.state.header.border}"			
+		>
+			{{ $store.state.header.title }}
+		</x-header>
+	</div>
+
+</template>
+
+<script>
+	import { XHeader } from 'vux'
+	import { userInfo, userScore } from "../../api/api"
+
+	export default {		
+		components: {
+			XHeader
+		},
+		data(){
+			return {
+				is_show_header:true
+			}
+		},
+		mounted() {
+			this.$store.state.ticket = localStorage.getItem('ticket');
+			if(this.$store.state.ticket != null) this.getUserInfo();
+			//判断是否在蛋鸡管家中
+			
+			var userAgent = navigator.userAgent;			
+			if(userAgent.indexOf('DJGJ_JN')>0){
+				this.is_show_header = false;
+			}
+		},
+		methods: {
+			getUserInfo() {
+				var params = {
+					ticket: this.$store.state.ticket
+				};
+				userInfo(params).then(rs => {
+					if(rs.data.real_name == "") rs.data.real_name = rs.data.mobile;
+					this.$store.state.userInfo = rs.data;
+				});
+				userScore(params).then(rs => {
+					this.$store.state.userInfo.score = rs.data.score;
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	.header {
+		height: 47px;
+		position: relative;
+		z-index: 10;
+	}
+	
+	/*.header .vux-header {
+		position: fixed;
+		width: 100%;
+		top: 0;
+		left: 0;
+		background: #FFFFFF;
+		z-index: 99999;
+	}*/
+	
+	.header-border {
+		border-bottom: 1px solid #ddd;
+	}
+</style>

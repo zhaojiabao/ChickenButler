@@ -1,0 +1,350 @@
+<template>
+	<div class="forum-detail">
+		<div class="forum-detail-top">
+			<p class="forum-detail-title">{{forums.title}}</p>
+			<ul class="forum-detail-ul">
+				<li><i><img src="https://api.danjiguanjia.com/public/image/eye.png" alt="" /></i><span>{{forums.view}}</span></li>
+				<li v-if="forums.is_praise==0"><i><img src="https://api.danjiguanjia.com/public/image/zan.png" alt="" /></i><span>{{forums.praise}}</span></li>
+				<li v-else><i><img src="../../assets/zanzan.png" alt="" /></i><span class="praise">{{forums.praise}}</span></li>
+				<li><i><img src="https://api.danjiguanjia.com/public/image/jubao.png" alt="" /></i><span>举报</span></li>
+				<li v-if="forums.is_favorite==0"><i><img src="https://api.danjiguanjia.com/public/image/shoucang.png" alt="" /></i><span>{{forums.favorite}}收藏</span></li>
+				<li v-else><i><img src="../../assets/shoucang.png" alt="" /></i><span class="praise">{{forums.favorite}}收藏</span></li>
+			</ul>
+			<div class="forum-detail-author">
+				<div class="forum-detail-author-left">
+					<img :src="forums.portrait" alt="" />
+				</div>
+				<div class="forum-detail-author-right">
+					<p><span>{{forums.nickname}}</span>
+						<i><img src="../../assets/pu.png" alt="" v-show="forums.type==3"/></i>
+						<i><img src="../../assets/jing.png" alt="" v-show="forums.type==1 || forums.is_jing==1" /></i>
+						<i><img src="../../assets/wen.png" alt=""  v-show="forums.type==2"/></i>
+						<span class="floor">楼主</span>
+					</p>
+					<div class="ask-egg">
+						<button v-if="forums.is_friend==0" class="weiguanzhu">关注</button>
+						<button v-else class="yiguanzhu">已关注</button>
+						<div class="ask-egg-right" v-if="forums.type==2">
+							<span class="egg">提问鸡蛋: {{forums.prize_scores}}枚</span><span class="ask" v-if="forums.is_adopt==0">提问中</span><span class="finish" v-else>已解决</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="froum-img" v-if="forums.cover.length>0" v-for="coimg in forums.cover">
+				<img :src="coimg" alt="" />
+			</div>
+			<p class="content" v-html="urlHtmlReplace(forums.content)">
+			</p>
+			<p class="content">
+				{{this.forums.create_time}}
+			</p>
+			<hr />
+		</div>
+		<div class="comment">
+			<div class="forum-detail-bottom" v-for="replay in forums_bottom">
+				<ul>
+					<li><img :src="replay.portrait" alt="" /></li>
+					<li>{{replay.nickname}}</li>
+					<li> </li>
+					<li>{{replay.role}}楼</li>
+				</ul>
+				<p v-if="replay.sign_comment == 'text'" v-html="urlHtmlReplace(replay.content)">
+				</p>
+				<p v-else>
+					<button class="btnbox" @click="btnClick"> </button>
+					<span class="replay-length">{{replay.length}}s</span>
+					<audio class="audios-btn" :src="replay.content"></audio>
+				</p>
+				<p>{{replay.create_time}}</p>
+				<div class="level_two" v-for="info in replay.er_info" v-if="replay.er_info.length > 0">
+					<ul>
+						<li><img :src="info.portrait" alt="" /></li>
+						<li>{{info.nickname}}</li>
+						<li>{{info.create_time}}</li>
+					</ul>
+					<p v-if="info.sign_comment == 'text'" v-html="urlHtmlReplace(info.content)"></p>
+					<p v-else>
+						<button class="btnbox" @click="btnClick"> </button>
+						<audio :src="info.content"></audio>
+					</p>
+				</div>
+				<hr />
+			</div>
+
+		</div>
+	</div>
+</template>
+
+<script>
+	import { postDetail } from '../../api/api'
+	import wx from 'weixin-js-sdk';
+	export default {
+		data() {
+			return {
+				forums: {
+					content: ''
+				},
+				forums_bottom: []
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '帖子详情';
+			this.$store.state.header.right_title = "分享"
+			postDetail({
+				community_id: this.$route.params.post_id
+			}).then(res => {
+				this.forums = res.data.top
+				this.forums_bottom = res.data.bottom
+				//配置微信
+				this.$wechat.ready(() => {
+					var title = this.forums.title + ' - 养殖专家在线互动交流'
+					var imgUrl = 'https://img.jianong.com/forum.jpg';
+					this.$wechat.onMenuShareTimeline({
+						title: title,
+						link: window.location.href,
+						imgUrl: imgUrl
+					});
+				});
+			});
+		},
+		methods: {
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			btnClick() {
+				var audios = document.querySelector(".audios-btn");
+				audios.play();
+			},
+//			this.$store.state.header.methods.rightClick(){
+//				
+//			}
+		},
+		filters: {
+			urlHtmlReplace(str) {
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.forum-detail {
+		.btnbox {
+			width: 30%;
+			background-color: #57B663;
+			border: none;
+			height: 2rem;
+			border-radius: 0.5rem;
+			float: left;
+		}
+		.btnbox:hover {
+			opacity: 0.5
+		}
+		p:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+		width: 90%;
+		margin: 0 auto;
+		.forum-detail-title {
+			font-size: 1.2rem;
+			font-weight: bold;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+			text-align: center;
+			padding: 0.5rem;
+		}
+		.forum-detail-ul {
+			.praise {
+				color: #FF0000;
+			}
+			padding: 1rem;
+			overflow: hidden
+		}
+		.froum-img{
+			img{
+				width: 100%;
+			}
+		}
+		.forum-detail-ul li:first-child {
+			text-align: left;
+		}
+		.forum-detail-ul li:last-child {
+			text-align: right;
+		}
+		.forum-detail-ul li {
+			float: left;
+			width: 25%;
+			text-align: center;
+		}
+		.forum-detail-ul li i {
+			display: inline-block;
+			width: 1rem;
+			height: 0.3rem;
+			img {
+				width: 100%;
+				padding-right: 1rem;
+			}
+		}
+		.forum-detail-ul li span {
+			padding-left: 0.5rem;
+		}
+		.forum-detail-author:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+		.forum-detail-author {
+			padding: 1rem 0;
+			.forum-detail-author-left {
+				width: 15%;
+				float: left;
+				img {
+					display: inline-block;
+					width: 100%;
+					border-radius: 50%;
+					background-size: cover;
+					height: 5rem;
+				}
+			}
+			.forum-detail-author-right {
+				width: 80%;
+				float: right;
+				p {
+					padding-bottom: 1rem;
+					position: relative;
+					i {
+						position: absolute;
+						top: 0;
+						right: 5rem;
+						display: inline-block;
+					}
+					.floor {
+						color: #1b6cb3;
+						float: right;
+						padding-right: 1.2rem;
+					}
+				}
+			}
+		}
+		p.content {
+			margin: 1rem 0;
+		}
+		.forum-detail-bottom {
+			margin-top: 2rem;
+			p {
+				margin: 1rem 0;
+			}
+			ul:after {
+				content: " ";
+				display: table;
+				clear: both;
+			}
+			ul li {
+				float: left;
+			}
+			ul li:first-child {
+				width: 10%;
+				img {
+					display: block;
+					border: 1px solid #FFFFFF;
+					height: 100%;
+					width: 100%;
+					border-radius: 50%;
+				}
+			}
+			ul li:nth-child(2) {
+				width: 35%;
+				padding-left: 5%;
+				padding-top: 2%;
+			}
+			ul li:nth-child(3) {
+				padding-top: 1.5%;
+				width: 25%;
+				text-align: right;
+				button {
+					border: none;
+					border: 1px solid #CCCCCC;
+					border-radius: 2px;
+					padding-bottom: 0.5rem;
+				}
+			}
+			ul li:nth-child(4) {
+				width: 25%;
+				color: #1b6cb3;
+				text-align: right;
+				padding-top: 2%;
+			}
+		}
+		.level_two {
+			margin-left: 15%;
+			ul:after {
+				content: "";
+				display: table;
+				clear: both;
+			}
+			ul li:first-child {
+				width: 12%;
+				float: left;
+			}
+			ul li:nth-child(2) {
+				width: 38%;
+				padding-left: 10%;
+				float: left;
+			}
+			ul li:nth-child(3) {
+				width: 40%;
+				float: right;
+				text-align: right;
+			}
+		}
+		.ask-egg {
+			.egg {
+				color: #FF0000;
+				padding-right: 5rem;
+			}
+			.ask-egg-right {
+				float: right;
+			}
+			.weiguanzhu {
+				width: 6rem;
+				background-color: red;
+				color: #FFFFFF;
+				border: none;
+				border-radius: 1rem;
+				padding: 0.25rem;
+			}
+			.yiguanzhu {
+				width: 6rem;
+				background-color: #CCCCCC;
+				border: none;
+				border-radius: 1rem;
+				padding: 0.25rem;
+			}
+			.ask {
+				float: right;
+				background-color: orange;
+				border: none;
+				padding: 0.1rem 0.5rem;
+				color: #FFFFFF;
+			}
+			.finish {
+				float: right;
+				background-color: green;
+				padding: 0.1rem 0.5rem;
+				color: #FFFFFF;
+			}
+		}
+		.replay-length {
+			float: left;
+			padding: 0.2rem 0 0 1rem;
+			font-size: 1.3rem;
+		}
+	}
+</style>

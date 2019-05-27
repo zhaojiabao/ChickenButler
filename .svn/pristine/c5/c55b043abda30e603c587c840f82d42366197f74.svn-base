@@ -1,0 +1,19 @@
+import axios from 'axios';
+import config from './config';
+
+let base = config.base_url;
+//let base = 'https://api.danji.jianong.com';
+
+/*
+ *	秒杀接口
+ *  
+ * */
+
+let seckill = '/v6/seckill/';
+
+//商品详情页接口
+export const goodsDetail = params => {
+	return axios.get(`${base}${seckill}/goodsDetail`, {
+		params: params
+	}).then(res => res.data);
+};

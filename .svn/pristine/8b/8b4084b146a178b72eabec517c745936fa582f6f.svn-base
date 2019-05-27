@@ -1,0 +1,345 @@
+<template>
+	<div class="home">
+		<div class="index">
+			<div class="home-search">
+				蛋鸡管家
+				<span v-if="this.$store.state.ticket ==''" @click="loginClick">登录</span>
+			</div>
+			<div class="home-function">
+				<swiper :list="banner_list" dots-position="center" :show-desc-mask="false" :auto="true" :loop="true" :interval="1500"></swiper>
+				<grid :rows="4" class="grid">
+					<grid-item :link="module.path" v-for="(module,index) in module_list">
+						<img slot="icon" :src="module.img" v-lazy="module.img">
+						<p>{{module.title}}</p>
+					</grid-item>
+				</grid>
+			</div>
+
+			<div class="news">
+				<p class="zixun" id="zixun">
+					新闻资讯
+					<img class="zixun_left" src="../assets/zixun_left.png" alt="" />
+					<img class="zixun_right" src="../assets/zixun_right.png" alt="" />
+				</p>
+				<div class="news-list" id="news-list" v-for="(news,index) in news_list" @click="newsClick(news.cms_id)" >
+					<div class="news-list-left">
+						<div>
+							<img :src="news.cms_pic" alt="" v-lazy="news.cms_pic" />
+						</div>
+						<p class="method">{{news.source}}</p>
+						<p v-for="(tag,index) in news.tag_id" v-if="index<2">
+							<span class="state">{{tag}}</span>
+						</p>
+					</div>
+					<div class="news-list-right">
+						<h3>{{news.cms_title}}</h3>
+						<p>{{news.description}}</p>
+						<p class="data"><span class="span-time">{{news.create_time}}</span><span class="span-number"><i><img src="https://api.danjiguanjia.com/public/image/eye.png" alt="" /></i>{{news.view}}</span></p>
+						<p class="name">{{news.author}}</p>
+					</div>
+				</div>
+				<mugen-scroll :handler="fetchData" :should-handle="!loading" class="loadings">
+					loading...
+				</mugen-scroll>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { indexBanner, indexNews, userAction } from "../api/api"
+	import { Swiper, Grid, GridItem, Search, Tabbar, TabbarItem, Group, Cell, Scroller, Divider, Spinner, LoadMore } from 'vux'
+	import MugenScroll from 'vue-mugen-scroll'
+	export default {
+		components: {
+			Swiper,
+			Grid,
+			GridItem,
+			Search,
+			Tabbar,
+			TabbarItem,
+			Group,
+			Cell,
+			Scroller,
+			Divider,
+			Spinner,
+			LoadMore,
+			MugenScroll
+		},
+		data() {
+			return {
+				results: [],
+				loading: false,
+				value: 'test',
+				banner_list: [],
+				banner_index: 0,
+				news_list: [],
+				index: true,
+				forum: false,
+				module_list: [{
+						title: '热点资讯',
+						img: 'https://img.jianong.com/redianzixun1@2x.png',
+						path: 'p/news'
+					},
+					{
+						title: '价格查询',
+						img: 'https://img.jianong.com/danjiaditu1@2x.png',
+						path: '/p/egg-price'
+					}, {
+						title: '管家视界',
+						img: 'https://img.jianong.com/guanjiashijie1@2x.png',
+						path: '/p/managerview'
+					}, {
+						title: '论坛',
+						img: 'https://img.jianong.com/huodongzhongxin1@2x.png',
+						path: '/p/forum'
+					}
+				],
+				loading_state: { //scroller组件的加载状态
+					pullupStatus: 'default'
+				},
+				page: 0
+			}
+		},
+		mounted() {
+			//实现banner切换
+			indexBanner().then(rs => {
+				for(var i = 0; i < rs.data.length; i++) {
+					if(i == rs.data.length - 2) return;
+					this.banner_list.push({
+						url: '/p/news/detail/' + rs.data[i].cms_id,
+						img: rs.data[i].cms_pic,
+					});
+				}
+			});
+			userAction({
+				ticket: this.$store.state.ticket,
+				module: 1,
+				cur_version: this.$store.state.cur_version
+			})
+		},
+		methods: {
+			fetchData() {
+				this.page++;
+				indexNews({
+					page: this.page
+				}).then(res => {
+					for(var i = 0; i < res.data.length; i++) {
+						this.news_list.push(res.data[i]);
+					}
+				});
+			},
+			newsClick(id) {
+				this.$router.push('/p/news/detail/' + id)
+			},
+			loginClick() {
+				this.$router.push('/p/login')
+			}
+		},
+
+	}
+
+	function getResult(val) {
+		let rs = []
+		for(let i = 0; i < 20; i++) {
+			rs.push({
+				title: `${val} result: ${i + 1} `,
+				other: i
+			})
+		}
+		return rs;
+	}
+</script>
+
+<style lang="less">
+	html {
+		1rem: 20px;
+	}
+	
+	.home {
+		/*论坛首页相关样式*/
+		.news {
+			overflow: auto;
+		}
+		.home-function {
+			background: #FFFFFF;
+			margin-top: 3rem;
+		}
+		.home-function:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+		.news-list {
+			margin-top: 7px;
+		}
+		.vux-slider {
+			margin-bottom: 15px;
+		}
+		.weui-grids {
+			&:before {
+				border: none;
+			}
+			.weui-grid {
+				padding: 5px 10px;
+				&:before {
+					border: none;
+				}
+				&:after {
+					border: none;
+				}
+				p {
+					color: #333333;
+				}
+			}
+			.weui-grid__icon {
+				width: 70%;
+				height: auto;
+			}
+			p {
+				font-size: 14px;
+				color: #000000;
+				font-family: 微软雅黑;
+				text-align: center;
+				margin: 8px auto;
+			}
+		}
+		.home-search {
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: 10;
+			width: 100%;
+			text-align: center;
+			font-size: 1.5rem;
+			color: #57B663;
+			padding: 0.5rem;
+			background-color: #FFFFFF;
+			span {
+				float: right;
+				padding: 0.5rem 1rem 0 0;
+			}
+		}
+		.news {
+			background-color: #FFFFFF;
+			border-top: 0.5rem solid #F8F8FF;
+		}
+		.zixun {
+			position: relative;
+			text-align: center;
+			font-size: 1.3rem;
+			font-family: "微软雅黑";
+			padding: 0.5rem 0;
+			background-color: white;
+			margin-top: 1rem;
+			color: #CCCCCC;
+			width: 95%;
+			margin: 0 auto;
+			border-bottom: 1px dashed #CCCCCC;
+			.zixun_left {
+				display: inline-block;
+				width: 12px;
+				height: 24px;
+				position: absolute;
+				left: -8px;
+				bottom: -12px;
+				z-index: 100;
+			}
+			.zixun_right {
+				width: 12px;
+				height: 24px;
+				position: absolute;
+				right: -8px;
+				bottom: -12px;
+				z-index: 100;
+			}
+		}
+		.loadings {
+			width: 90%;
+			margin: 0 auto;
+			text-align: center;
+		}
+		.news-list {
+			width: 90%;
+			border-bottom: 1px dotted #CCCCCC;
+			margin: 0 auto;
+			padding: 1rem 0;
+		}
+		.news-list:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+		.news-list-left,
+		.news-list-right {
+			float: left;
+		}
+		.news-list-left {
+			width: 27%;
+			overflow: hidden;
+		}
+		.news-list-left img {
+			display: inline-block;
+			width: 6rem;
+			height: 6rem;
+		}
+		.news-list-left .state {
+			border: 1px solid #000000;
+			float: left;
+			margin-right: 0.5rem;
+			padding: 0.1rem 0.3rem;
+			border-radius: 5px;
+			line-height: 1.3em;
+			color: #666666;
+			border-color: #666666;
+		}
+		.news-list-left .method {
+			padding: 1rem 0;
+			color: #444444;
+		}
+		.news-list-right {
+			width: 70%;
+			padding-left: 3%;
+		}
+		.news-list-right h3 {
+			color: #333333;
+			font-size: 1.2rem;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+		.news-list-right p:first-of-type {
+			color: #888888;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+			padding: 1.5rem 0;
+		}
+		.news-list-right .span-time {
+			color: #999999;
+			float: left;
+		}
+		.news-list-right .span-number {
+			color: #999999;
+			float: right;
+		}
+		.news-list-right i {
+			display: inline-block;
+			width: 1rem;
+			height: 1.2rem;
+			margin-right: 1rem;
+		}
+		.news-list-right i img {
+			width: 100%;
+		}
+		.news-list-right .name {
+			float: right;
+			padding: 1rem 0;
+		}
+		.news-list-right .data:after {
+			content: " ";
+			display: table;
+			clear: both;
+		}
+	}
+</style>

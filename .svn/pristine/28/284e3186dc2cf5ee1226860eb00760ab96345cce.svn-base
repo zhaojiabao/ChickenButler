@@ -1,0 +1,435 @@
+<template>
+	<div>
+		<div class="video-detail">
+			<video height="200px" :src="video_list.video_url" controls="controls">
+			</video>
+			<div class="video-detail-main">
+				<div class="comment-warp">
+					<div class="comment">
+						<ul>
+							<li v-model="show1" @click="clickShow1"><img src="../../assets/commit.png" alt="" /> <span>查看评论</span></li>
+							<li><span class="tag" v-for="tag in video_list.tag_id.slice(0,2)">{{tag}}</span></li>
+							<li><span class="fenxiang"></span></li>
+							<li><span class="shoucang"></span></li>
+						</ul>
+					</div>
+				</div>
+				<div class="medication-skill" v-model="show2" @click="clickShow2">
+					<div class="medication-skill-main">
+						<div class="medication-skill-left">
+							<p>{{video_list.title}}</p>
+							<p><img src="../../assets/videoplay.png" alt="" /><span> {{video_list.view}}次播放</span></p>
+						</div>
+						<div class="medication-skill-right">
+							<p><span>简介 </span><img src="../../assets/jiantou.png" alt="" /></p>
+						</div>
+					</div>
+				</div>
+
+				<div class="video-info" @click="clickShow3">
+					<div class="medication-skill-main">
+						<ul>
+							<li><img class="video_list_cover" :src="video_list.cover" alt="" /></li>
+							<li><span>主讲人: {{video_list.teach_name}}</span></li>
+							<li><span>简介 </span><img  src="../../assets/jiantou.png" alt="" /></li>
+						</ul>
+					</div>
+				</div>
+				<div class="medication-skill-main">
+					<p class="recommend">相关推荐</p>
+					<div class="recommend-info" v-for="recom in recommends" @click="recomClick(recom.id)">
+						<ul>
+							<li><img :src="recom.cover" alt="" /></li>
+							<li>
+								<p>{{recom.title}}</p>
+								<p><img src="../../assets/videoplay.png" alt=""/> <span>{{recom.view}}</span> <span class="add-time">{{recom.add_time}}</span></p>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<popup v-model="show1" height="65%" :hide-on-blur=true :show-mask=false>
+					<div class="popup popup1">
+						<img v-model="show1" @click="dbclickShow1" class="close" src="../../assets/close.png" alt="" />
+						<p class="popup-comment">全部评论</p>
+						<hr />
+						<div class="popup-comment-main">
+							<div class="popup-comment-main-left">
+								<img src="../../assets/images/active/bg.jpg" alt="" />
+							</div>
+							<div class="popup-comment-main-right">
+								<p class="xiesi">已有{{comment_list.length}}评论,快来说说你的感想吧 !</p>
+							</div>
+						</div>
+						<hr />
+						<div v-for="com in comment_list">
+							<div class="popup-comment-main">
+								<div class="popup-comment-main-left">
+									<img :src="com.pic" alt="" />
+								</div>
+								<div class="popup-comment-main-right">
+									<div class="name-time">
+										<span>{{com.nickname}} </span>
+										<span>{{com.comment_time}} </span>
+									</div>
+									<p>{{com.content}} </p>
+								</div>
+							</div>
+							<hr />
+						</div>
+					</div>
+				</popup>
+
+				<popup v-model="show2" height="65%" :hide-on-blur=true :show-mask=false>
+					<div class="popup popup2">
+						<img v-model="show2" @click="dbclickShow2" class="close" src="../../assets/close.png" alt="" />
+						<p class="popup-comment">视频简介</p>
+						<hr />
+						<p>{{video_list.title}}</p>
+						<p v-html="urlHtmlReplace(video_list.description)"></p>
+					</div>
+				</popup>
+
+				<popup v-model="show3" height="65%" :hide-on-blur=true :show-mask=false>
+					<div class="popup popup3">
+						<img v-model="show3" @click="dbclickShow3" class="close" src="../../assets/close.png" alt="" />
+						<p class="popup-comment">讲师简介</p>
+						<hr />
+						<div class="popup-info">
+							<ul>
+								<li><img :src="video_list.cover" alt="" /></li>
+								<li><span>主讲人: {{video_list.teach_name}}</span></li>
+							</ul>
+						</div>
+						<p>{{video_list.descript}}</p>
+					</div>
+				</popup>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { Popup } from 'vux'
+	import { videoDetail, commentList } from '../../api/api'
+	export default {
+		components: {
+			Popup
+		},
+		data() {
+			return {
+				video_list: '',
+				recommends: [],
+				show1: false,
+				show2: false,
+				show3: false,
+				comment_list: [],
+				length: 0
+			}
+		},
+		mounted() {
+			videoDetail({
+				ticket: this.$store.state.ticket,
+				v_id: this.$route.params.video_id
+			}).then(res => {
+				this.video_list = res.data.data;
+				this.recommends = res.data.recommend;
+				this.$store.state.header.title = res.data.data.title;
+				if(res.data.data.tag_id == undefined){return ''}
+			});
+
+		},
+		methods: {
+			recomClick(id) {
+				this.$router.push('/p/video/detail/' + id);
+				videoDetail({
+					ticket: this.$store.state.ticket,
+					v_id: id
+				}).then(res => {
+					this.video_list = res.data.data;
+					this.recommends = res.data.recommend;
+					this.$store.state.header.title = res.data.data.title;
+				})
+			},
+			urlHtmlReplace(str) {
+				if(str == undefined) return '';
+				str = str.replace(/\n/g, '<br/>'); // 替换换行
+				var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+				return str.replace(reg, '<a href="$1$2">$1$2</a>');
+			},
+			clickShow1() {
+				this.show1 = true;
+				commentList({
+					v_id: this.$route.params.video_id,
+					teach_id: this.video_list.teach_id
+				}).then(res => {
+					this.comment_list = res.data;
+					if(res.data.length == undefined) return 0;
+				})
+			},
+			dbclickShow1() {
+				this.show1 = false;
+			},
+			clickShow2() {
+				this.show2 = true;
+			},
+			dbclickShow2() {
+				this.show2 = false;
+			},
+			clickShow3() {
+				this.show3 = true;
+			},
+			dbclickShow3() {
+				this.show3 = false;
+			}
+
+		}
+	}
+</script>
+
+<style lang="less">
+	.popup-comment-main-right:after,
+	.name-time:after,
+	.popup-comment-main:after,
+	.popup-info:after,
+	.recommend-info ul:after,
+	.recommend-info:after,
+	.video-info:after,
+	.medication-skill:after {
+		content: ' ';
+		display: table;
+		clear: both;
+	}
+	
+	.popup {
+		position: relative;
+		width: 90%;
+		margin: 0 auto;
+		.close {
+			display: block;
+			position: absolute;
+			right: 0;
+			top: 0.5rem;
+			width: 1.5rem;
+			height: 1.5rem;
+		}
+		.popup-comment {
+			padding-top: 0.5rem;
+			font-size: 1.2rem;
+		}
+	}
+	.popup1 {
+		.popup-comment-main {
+			
+			padding-bottom: 0.5rem;
+			.popup-comment-main-left {
+				float: left;
+				width: 10%;
+				img {
+					display: inline-block;
+					height: 3rem;
+					width: 3rem;
+					border-radius: 50%;
+				}
+			}
+			.popup-comment-main-right {
+				float: right;
+				width: 85%;
+				.name-time {
+					span:first-child {
+						float: left;
+					}
+					span:last-child {
+						float: right;
+						color: #888888;
+					}
+				}
+				p {
+					padding-top: 0.5rem;
+				}
+				.xiesi {
+					margin-top: 0.6rem;
+					padding: 0.3rem 2rem;
+					border-radius: 1rem;
+					background-color: #CCCCCC;
+					color: #f8f8ff;
+				}
+			}
+		}
+	}
+	
+	.popup2 {
+		p {
+			padding-top: 0.5rem;
+		}
+	}
+	
+	.popup3 {
+		.popup-info {
+			border: none;
+			ul li {
+				float: left;
+				display: inline-block;
+			}
+			ul li:nth-child(2) {
+				padding: 1rem 0 0 2rem;
+			}
+			img {
+				display: inline-block;
+				width: 4rem;
+				height: 4rem;
+				border-radius: 50%;
+			}
+		}
+	}
+	
+	.vux-popup-dialog {
+		background-color: #FFF;
+	}
+	
+	.video-detail {
+		p,span{
+			font-size: 1.1rem;
+		}
+		video {
+			width: 100%;
+			background-color: #000000;
+		}
+		.medication-skill-main {
+			width: 90%;
+			margin: 0 auto;
+			font-size: 1.2rem;
+		}
+		.video-detail-main {
+			.comment-warp {
+				border-bottom: 0.3rem solid #F8F8FF;
+				.comment {
+					width: 90%;
+					margin: 0 auto;
+					padding: 1rem 0;
+					ul li {
+						display: inline-block;
+					}
+					li:first-child {
+						width: 35%;
+						img {
+							display: inline-block;
+							width: 1.2rem;
+							height: 1.2rem;
+						}
+					}
+					li:nth-child(2) {
+						width: 40%;
+						.tag {
+							padding: 0.1rem 0.4rem;
+							margin: 0 0.1rem;
+							border: 1px solid #CCCCCC;
+							border-radius: 3px;
+							color: #CCCCCC;
+						}
+					}
+					li:last-child,
+					li:nth-last-child(2) {
+						text-align: right;
+						width: 10%;
+					}
+				}
+			}
+		}
+		.medication-skill {
+			border-bottom: 0.3rem solid #F8F8FF;
+			.medication-skill-left {
+				float: left;
+				p {
+					margin: 1rem 0;
+					img {
+						display: inline-block;
+						width: 1rem;
+						height: 1rem;
+					}
+					span {
+						color: #CCCCCC;
+					}
+				}
+			}
+			.medication-skill-right {
+				float: right;
+				p {
+					color: #CCCCCC;
+					margin-top: 2rem;
+					span{
+						padding-right: 0.5rem;
+					}
+					
+				}
+			}
+		}
+		.video-info {
+			border-bottom: 0.3rem solid #F8F8FF;
+			padding: 1rem 0;
+			ul li {
+				float: left;
+			}
+			ul li:first-child {
+				width: 15%;
+			}
+			ul li:nth-child(2) {
+				width: 65%;
+				padding-left: 5%;
+				padding-top: 1rem;
+			}
+			ul li:last-child {
+				width: 15%;
+				text-align: right;
+				padding-top: 1rem;
+				color: #CCCCCC;
+				span{
+					padding-right: 0.5rem;
+				}
+				img{
+					float: right;
+					margin-top: 0.2rem;
+				}
+			}
+			.video_list_cover {
+				display: inline-block;
+				width: 4rem;
+				height: 4rem;
+				border-radius: 50%;
+			}
+			
+		}
+		.recommend {
+			padding: 0.5rem 0;
+		}
+		.recommend-info {
+			ul li {
+				float: left;
+			}
+			ul li:first-child {
+				width: 20%;
+				img {
+					width: 100%;
+				}
+			}
+			ul li:nth-child(2) {
+				width: 75%;
+				padding-left: 5%;
+				p {
+					padding-bottom: 0.5rem;
+					span {
+						color: #CCCCCC;
+					}
+				}
+				img {
+					display: inline-block;
+					width: 1rem;
+					height: 1rem;
+				}
+				.add-time {
+					float: right;
+				}
+			}
+		}
+	}
+</style>

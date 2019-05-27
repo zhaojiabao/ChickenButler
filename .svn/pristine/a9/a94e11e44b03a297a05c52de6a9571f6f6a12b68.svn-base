@@ -1,0 +1,39 @@
+<template>
+	<div class="banner-detil">
+		<iframe :src="URL" width="100%" height="100%"  frameborder="no"></iframe>
+	</div>
+</template>
+
+<script>
+	import { indexBanner,userAction } from "../../api/api"
+	export default {
+		data(){
+			return{
+				URL:''
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "资讯详情";
+			//实现banner切换
+			indexBanner().then(rs => {				
+				rs.data.forEach((item,index)=>{
+					if(item.cms_id == this.$route.params.id){
+						this.URL = item.url;
+					}
+				})
+			});
+			userAction({
+				ticket:this.$store.state.ticket,
+				module:19,
+				cur_version:this.$store.state.cur_version
+			})
+		}
+	}
+</script>
+
+<style>
+	.banner-detil {
+		width: 100vw;
+		height: 95vh;
+	}
+</style>

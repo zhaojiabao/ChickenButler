@@ -1,0 +1,57 @@
+<template>
+	<div class="teacher">
+		<ul>
+			<li v-for="tea in teacher_list" @click="teacherClick(tea.teach_id)">
+				<img :src="tea.cover" alt="" />
+				<p>{{tea.teach_name}}</p>
+			</li>
+		</ul>
+	</div>
+</template>
+
+<script>
+	import { videoTeacherList } from '../../api/api'
+
+	export default {
+		data() {
+			return {
+				teacher_list: []
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "金牌讲师"
+			videoTeacherList().then(res => {
+				if(this.$store.state.ticket == null) {
+					this.$router.push('/p/login')
+				} else {
+					this.teacher_list = res.data;
+				}
+			})
+		},
+		methods: {
+			teacherClick(id){
+				this.$router.push('/p/teacher/detail/'+id)
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.teacher {
+		width: 90%;
+		margin: 0 auto;
+		ul li {
+			width: 33.33%;
+			float: left;
+			text-align: center;
+			img {
+				display: inline-block;
+				height: 6rem;
+				width: 6rem;
+				border-radius: 50%;
+				padding: 1rem;
+				
+			}
+		}
+	}
+</style>

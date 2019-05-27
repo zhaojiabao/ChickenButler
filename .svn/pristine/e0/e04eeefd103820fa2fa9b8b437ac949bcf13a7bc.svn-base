@@ -1,0 +1,208 @@
+<template>
+	<!--本页面是创建圈子页面-->
+	<div class="buildcircle">
+		<div class="buildcircle-people">
+			<div>创建人</div>
+			<div><input type="text" placeholder="必填" v-model="circle.people" /></div>
+		</div>
+		<div class="buildcircle-circle">
+			<div>圈子名称</div>
+			<div><input type="text" placeholder="必填" v-model="circle.name" /></div>
+		</div>
+		<div class="buildcircle-info">
+			<div>圈子简介</div>
+			<div><textarea name="info" rows="3" cols="" placeholder="必填" v-model="circle.info"></textarea></div>
+		</div>
+		<div class="buildcircle-img">
+			<div>上传圈子图片</div>
+			<div>
+				<div class="weui-cell__hd">
+					<ul class="weui-uploader__files">
+						<li class="weui-uploader__file" v-for="pic in imglist" :style="'background-image:url('+pic+')'"></li>
+					</ul>
+					<div class="weui-uploader__input-box" v-show="hideImg">
+						<input class="weui-uploader__input" type="file" name="file" accept="image/*" multiple="" @change="upload">
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="buildcircle-commit" @click="buildCircles">
+			提交
+		</div>
+	</div>
+</template>
+
+<script>
+	import { getQiniuSign, uploadImg, circleCreate } from '../../api/api'
+	const domain = 'https://img.jianong.com/';
+	export default {
+		data() {
+			return {
+				circle: {
+					people: '',
+					name: '',
+					info: ''
+				},
+				imglist: [],
+				hideImg: true
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "创建圈子"
+			this.$store.state.header.right_title = "";
+		},
+		methods: {
+			//点击提交时验证信息是否完整,调用api中circleCreate方法提交数据
+			buildCircles() {
+				if(this.circle.people == '' || this.circle.name == '' || this.circle.info == '') {
+					this.$vux.toast.text("请填写完整!");
+					return false;
+				}
+				circleCreate({
+					ticket: this.$store.state.ticket,
+					creator: this.circle.people,
+					name: this.circle.name,
+					info: this.circle.info,
+					image: this.imglist,
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text("正在审核,请耐心等待!");
+						this.$router.push('/p/forum-list/4')
+					} else {
+						this.$vux.toast.text("ddd");
+					}
+				})
+			},
+			//图片上传相关方法
+			upload(e) {
+				if(e.target.files[0] == undefined) {
+					return false;
+				}
+				this.$vux.loading.show({
+					text: '图片上传中，请稍等...'
+				})
+				getQiniuSign().then(rs => {
+					uploadImg({
+						file: e,
+						token: rs.data
+					}).then(rs => {
+						this.imglist.push(domain + rs.key);
+						this.hideImg = false
+						this.$vux.loading.hide();
+					})
+				})
+			},
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.buildcircle-people:after,
+	.buildcircle-circle:after,
+	.buildcircle-info:after {
+		content: "";
+		display: table;
+		clear: both;
+	}
+	
+	.buildcircle {
+		width: 90%;
+		margin: 0 auto;
+		.buildcircle-people {
+			padding-top: 1rem;
+			div:first-child {
+				width: 20%;
+				float: left;
+				font-size: 1.1rem;
+			}
+			div:last-child {
+				width: 75%;
+				margin-left: 5%;
+				float: right;
+				input {
+					font-size: 1.1rem;
+					width: 100%;
+					border-radius: 1rem;
+					outline: none;
+					padding: 3px 0 3px 8px;
+					border-color: #CCCCCC;
+				}
+			}
+		}
+		.buildcircle-circle {
+			padding-top: 1rem;
+			div:first-child {
+				width: 20%;
+				float: left;
+				font-size: 1.1rem;
+			}
+			div:last-child {
+				width: 75%;
+				margin-left: 5%;
+				float: right;
+				input {
+					font-size: 1.1rem;
+					width: 100%;
+					border-radius: 1rem;
+					outline: none;
+					padding: 3px 0 3px 8px;
+					border-color: #CCCCCC;
+				}
+			}
+		}
+		.buildcircle-info {
+			padding-top: 1rem;
+			div:first-child {
+				width: 20%;
+				float: left;
+				font-size: 1.1rem;
+			}
+			div:last-child {
+				font-size: 1.1rem;
+				width: 75%;
+				margin-left: 5%;
+				float: right;
+				textarea {
+					font-size: 1.1rem;
+					width: 100%;
+					outline: none;
+					padding: 3px 0 3px 8px;
+					border-color: #CCCCCC;
+				}
+			}
+		}
+		.buildcircle-img {
+			padding-top: 1rem;
+			div:first-child {
+				width: 25%;
+				float: left;
+				font-size: 1.1rem;
+			}
+			div:last-child {
+				font-size: 1.1rem;
+				width: 60%;
+				float: left;
+				margin-left: 5%;
+				textarea {
+					font-size: 1.1rem;
+					width: 100%;
+					outline: none;
+					padding: 3px 0 3px 8px;
+					border-color: #CCCCCC;
+				}
+			}
+		}
+		.buildcircle-commit {
+			width: 100%;
+			background-color: #57B663;
+			position: fixed;
+			left: 0;
+			bottom: 0;
+			height: 2.3rem;
+			color: #FFFFFF;
+			text-align: center;
+			font-size: 1.1rem;
+			padding-top: 0.6rem;
+		}
+	}
+</style>

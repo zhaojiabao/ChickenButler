@@ -1,0 +1,364 @@
+@theme-color: #56b563;
+@opacity-disabled: 0.5;
+
+/**
+* 通用背景和颜色
+*/
+
+.theme-bg {
+    background: @theme-color;
+    color: #fff
+}
+
+.theme-color {
+    color: @theme-color
+}
+
+.theme-color-red {
+    color: red
+}
+
+.line {
+    height: 5px;
+    background: #F7F7F7;
+}
+
+.vue-border-r {
+    border-right: 1px solid @theme-color;
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/**
+* Header
+*/
+
+.vux-header {
+    background: #fff;
+    .vux-header-title {
+        color: @theme-color
+    }
+    .vux-header-left {
+        .left-arrow {
+            &:before {
+                border-width: 3px 0 0 3px;
+                border-color: @theme-color;
+            }
+        }
+        .vux-header-back {
+            color: @theme-color;
+        }
+    }
+}
+
+
+/**
+* Button
+*/
+
+.weui-btn_primary {
+    background: @theme-color;
+}
+
+.weui-btn {
+    border-radius: 0;
+}
+
+.weui-input {
+    font-size: 14px;
+}
+
+.vux-button-group>a.vux-button-group-current {
+    background: @theme-color;
+}
+
+.vux-button-group>a.vux-button-tab-item-last:after,
+.vux-button-group>a.vux-button-tab-item-first:after {
+    border-color: @theme-color;
+    color: @theme-color;
+}
+
+.weui-cells {
+    margin-top: 5px;
+}
+
+.weui-cells:before,
+.vux-cell-box:before {
+    border-top: none;
+}
+
+.fa-icon {
+    color: #999
+}
+
+.weui-uploader__input-box:before,
+.weui-uploader__input-box:after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    background-color: #D9D9D9;
+}
+
+.weui-uploader__input-box {
+    float: left;
+    position: relative;
+    margin-right: 9px;
+    margin-bottom: 9px;
+    width: 77px;
+    height: 77px;
+    border: 1px solid #D9D9D9;
+    &:before {
+        width: 2px;
+        height: 39.5px;
+    }
+    &:after {
+        width: 39.5px;
+        height: 2px;
+    }
+}
+
+.weui-uploader__input {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.weui-uploader__files {
+    float: left
+}
+
+.weui-uploader__file {
+    float: left;
+    margin-right: 9px;
+    margin-bottom: 9px;
+    width: 79px;
+    height: 79px;
+    background: no-repeat center center;
+    background-size: cover;
+}
+
+.weui-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.weui-flex__item {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+    flex: 1;
+}
+
+.h60 {
+    height: 60px;
+}
+
+.vux-button-group>a {
+    color: @theme-color
+}
+
+.vux-tap-active {
+    width: auto !important;
+}
+
+.weui-cells {
+    margin-top: 0 !important;
+}
+
+.vux-no-group-title {
+    margin-top: 0px !important;
+}
+
+//公共样式, padding布局
+.common-padding-lr {
+    width: 90%;
+    padding: 0 5%;
+}
+
+//公共样式, margin布局
+.common-margin-lr {
+    width: 90%;
+    margin: 0 5%;
+    background-color: #FFFFFF;
+}
+
+.common-border-bottom {
+    border-bottom: 1rem solid #e3e3e3;
+}
+
+//公共样式, 去除浮动
+.clear-float:after {
+    display: table;
+    content: "";
+    clear: both;
+}
+
+//公共样式, 下三角 绿色
+.draw-aquare {
+    position: relative;
+}
+
+.draw-aquare:after {
+    content: '';
+    height: 0;
+    width: 0;
+    position: absolute;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #57b663;
+    top: 1.15rem;
+    right: 0;
+}
+
+//公共样式, 下三角 白色
+.draw-aquare-with {
+    position: relative;
+}
+
+.draw-aquare-with:after {
+    content: '';
+    height: 0;
+    width: 0;
+    position: absolute;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid #fff;
+    top: 0.4rem;
+    right: -0.8rem;
+}
+
+//公共样式, 价格行情的日期选项卡
+.ul-date {
+    padding: 1rem 0;
+    width: 66%;
+    margin: 0 auto;
+    font-size: 0;
+    border-radius: 5px;
+    li {
+        box-sizing: border-box;
+        border: 1px solid #EEEEEE;
+        border-left: none;
+        display: inline-block;
+        width: 25%;
+        text-align: center;
+        height: 2rem;
+        line-height: 1.9rem;
+    }
+    li:first-of-type {
+        border-left: 1px solid #EEEEEE;
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    li:last-of-type {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+}
+
+//公共样式,价格行情的分隔
+.cut {
+    height: 1rem;
+    background-color: #E3E3E3;
+}
+
+.vux-tab .vux-tab-item {
+    background: none;
+}
+
+//公共样式,新版价格行情的title部分
+.price-title {
+    height: 3rem;
+    line-height: 3rem;
+    border-bottom: 1px solid #EEEEEE;
+    font-size: 1rem;
+}
+
+//公共样式 表格数据最后一项的2行效果
+.gains-info {
+    position: relative;
+    text-align: center;
+    span:first-of-type {
+        position: absolute;
+        top: -0.4rem;
+        left: 2.5rem;
+        //      color: #D0021B;
+        font-size: 1rem;
+    }
+    span:last-of-type {
+        position: absolute;
+        top: 0.7rem;
+        left: 2.5rem;
+        //      color: #999999;
+        font-size: 0.8rem;
+    }
+}
+
+.newegg-title {
+    height: 3rem;
+    line-height: 3rem;
+    span:first-of-type {
+        font-size: 1rem;
+    }
+    span:last-of-type {
+        font-size: 0.94rem;
+        color: #57B663;
+        float: right;
+        height: 3rem;
+        line-height: 1.4rem;
+    }
+}
+
+//修改vux中的地区组件背景颜色
+.vux-tap-active,
+.vux-popup-picker-select {
+    background: none!important;
+}
+
+.vux-popup-dialog {
+    background-color: #FFF !important
+}
+
+.loading-warp {
+    position: relative;
+}
+
+.loading-main {
+    position: absolute;
+    z-index: 1000;
+    background-color: #fff;
+    width: 100%;
+    height: 300px;
+    line-height: 300px;
+    text-align: center;
+    top: 0;
+    left: 0;
+}
+
+.loading-main img {
+    width: 50vw;
+    height: 40vw;
+    margin-top: 10vh;
+}
+
+.table-border {
+    border-bottom: 1px solid #EEEEEE;
+    height: 4rem;
+    line-height: 4rem;
+    td {
+        width: 35%;
+         font-size: 1.1rem;
+    }
+}

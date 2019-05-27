@@ -1,0 +1,25 @@
+<template>
+	<div class="chicken-detail">
+		
+	</div>
+</template>
+
+<script>
+	import { videoChickList } from '../../api/api'
+	export default{
+		data(){
+			return{
+				chicken_list:[]
+			}
+		},
+		methods:{
+			
+		},
+		mounted(){
+			
+		}
+	}
+</script>
+
+<style>
+</style>

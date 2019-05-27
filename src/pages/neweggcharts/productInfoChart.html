@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>全国图表</title>
+		<link rel="stylesheet" type="text/css" href="../css/new-egg-main.css" />
+		<script src="https://cdn.bootcss.com/babel-polyfill/7.0.0-beta.40/polyfill.min.js"></script>
+	</head>
+
+	<body>
+		<div id="main">
+			<div class="local-price">
+				<div class="local-price-title clear-float">
+					<span style="float: left;">{{page_title}}</span>
+				</div>
+			</div>
+			
+			<div class="loading-warp">
+				<div class="main" id="echartsone"></div>
+				<div class="loading-main" v-if='is_show'>
+					<img src="../img/timg.gif" alt="" />
+				</div>
+			</div>
+			
+			<ul class="ul-date clear-float">
+				<li v-for='(date,index) in local_date_tab' :key='index' :class="{'date-select':date.done}" @click="localClickDateTab(index,date.day)" v-text='date.name'></li>
+			</ul>
+		</div>
+		<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.min.js"></script>
+		<script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/vue/2.5.17-beta.0/vue.min.js"></script>
+		<script type="text/javascript">
+			new Vue({
+				el: '#main',
+				data: {
+					msg: 'hello',
+					local_date_tab: [{
+						name: '近1月',
+						done: true,
+						day: 30
+					}, {
+						name: '近3月',
+						done: false,
+						day: 90
+					}, {
+						name: '近6月',
+						done: false,
+						day: 180
+					}, {
+						name: '近1年',
+						done: false,
+						day: 295
+					}],
+					local_day: 30,
+					local_xdata: [],
+					local_ydata: [],
+					series: [],
+					local_type_tab: 1,
+					local_chart_title: ['鸡蛋价格'],
+					page_title: '蛋价走势',
+					page_type: 0,
+					page_unit: '',
+					page_series_name: '',
+					is_show: false,
+
+				},
+				methods: {
+					localClickDateTab(index, day) {
+						this.local_date_tab.forEach((item, index) => {
+							item.done = false;
+						})
+						this.local_day = day;
+						if(this.getQueryString('type') == 1) {
+							this.getIndexPriceDetail();
+						} else if(this.getQueryString('type') == 2) {
+							this.outChickenDayAvgPriceDetail();
+						} else if(this.getQueryString('type') == 3) {
+							this.materialDayAvgPriceDetail();
+						} else {
+							this.getmaterialDetail();
+						}
+						this.local_date_tab[index].done = true;
+					},
+					//获取鸡蛋产区数据
+					getIndexPriceDetail() {
+						this.local_xdata = [];
+						this.local_ydata = [];
+						this.is_show = true;
+						axios.get('https://api.dev.danjiguanjia.com/api/v2/PriceSearch/getIndexPriceDetail', {
+							params: {
+								ticket: this.getQueryString('ticket'),
+								area: this.getQueryString('area'),
+								day: this.local_day
+							}
+						}).then(res => {
+							this.local_xdata = res.data.data.date;
+							this.local_ydata = res.data.data.price;
+							this.drawLine();
+							this.is_show = false;
+						})
+					},
+					//获取淘汰鸡数据
+					outChickenDayAvgPriceDetail() {
+						this.local_xdata = [];
+						this.local_ydata = [];
+						this.is_show = true;
+						axios.get('https://api.dev.danjiguanjia.com/api/v2/PriceSearch/outChickenDayAvgPriceDetail', {
+							params: {
+								ticket: this.getQueryString('ticket'),
+								area: this.getQueryString('area'),
+								day: this.local_day
+							}
+						}).then(res => {
+							this.local_xdata = res.data.data.date;
+							this.local_ydata = res.data.data.price;
+							this.drawLine();
+							this.is_show = false;
+						})
+					},
+					//获取玉米数据 
+					materialDayAvgPriceDetail() {
+						this.local_xdata = [];
+						this.local_ydata = [];
+						this.is_show = true;
+						axios.get('https://api.dev.danjiguanjia.com/api/v2/PriceSearch/materialDayAvgPriceDetail', {
+							params: {
+								ticket: this.getQueryString('ticket'),
+								area: this.getQueryString('area'),
+								day: this.local_day
+							}
+						}).then(res => {
+							this.local_xdata = res.data.data.time;
+							this.local_ydata = res.data.data.cornPrice_price;
+							this.drawLine();
+							this.is_show = false;
+						})
+					},
+					//获取豆粕数据 
+					getmaterialDetail() {
+						this.local_xdata = [];
+						this.local_ydata = [];
+						this.is_show = true;
+						axios.get('https://api.dev.danjiguanjia.com/api/v2/PriceSearch/materialDayAvgPriceDetail', {
+							params: {
+								ticket: this.getQueryString('ticket'),
+								area: this.getQueryString('area'),
+								day: this.local_day
+							}
+						}).then(res => {
+							this.local_xdata = res.data.data.time;
+							this.local_ydata = res.data.data.mealprice_price;
+							this.drawLine();
+							this.is_show = false;
+						})
+					},
+					drawLine() {
+						var myChart = echarts.init(document.getElementById('echartsone'));
+						myChart.setOption({
+							grid: {
+								top: 40,
+								bottom: 30,
+								left: 50,
+								right: 30,
+							},
+							tooltip: {
+								trigger: 'axis',
+							},
+							legend: {
+								show: true,
+								data: this.local_chart_title,
+								textStyle: {
+									color: '#999',
+								},
+								top: '10',
+								right: '0',
+								itemGap: 1,
+								itemWidth: 6,
+								itemHeight: 6,
+							},
+							xAxis: {
+								type: 'category',
+								data: this.local_xdata,
+								nameTextStyle: {
+									color: "#999"
+								},
+								axisLine: {
+									show: false
+								},
+								axisTick: {
+									show: false
+								},
+								axisLabel: {
+									color: '#999'
+								}
+							},
+							yAxis: {
+								type: 'value',
+								name: this.page_unit,
+								nameLocation: 'end',
+								nameTextStyle: {
+									color: "#999"
+								},
+								axisLine: {
+									show: false
+								},
+								axisTick: {
+									show: false
+								},
+								axisLabel: {
+									color: '#999'
+								},
+								scale: true,
+								splitLine: {
+									lineStyle: {
+										color: '#eee'
+									}
+								}
+							},
+							series: [{
+								data: this.local_ydata,
+								type: 'line',
+								name: this.page_series_name,
+								symbol: 'circle',
+								symbolSize: 5, //图标尺寸
+								lineStyle: {
+									normal: {
+										color: "#57b663" //连线颜色
+									}
+								},
+								itemStyle: {
+									normal: {
+										color: "#57b663", //图标颜色
+									}
+								}
+							}]
+						})
+					},
+					getQueryString(name) {
+						var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+						var r = window.location.search.substr(1).match(reg);
+						if(r != null) {
+							return decodeURI(r[2]);
+						}
+						return null;
+					}
+				},
+				mounted() {
+					if(this.getQueryString('type') == 1) {
+						this.getIndexPriceDetail();
+						this.page_title = '蛋价走势';
+						this.page_unit = '单位（元／斤）'
+						this.page_series_name = '鸡蛋价格'
+					} else if(this.getQueryString('type') == 2) {
+						this.outChickenDayAvgPriceDetail();
+						this.page_title = '淘汰鸡价格走势';
+						this.page_unit = '单位（元／斤）'
+						this.page_series_name = '淘汰鸡价格'
+						this.local_chart_title = ['淘汰鸡价格']
+					} else if(this.getQueryString('type') == 3) {
+						this.materialDayAvgPriceDetail();
+						this.page_title = '玉米价格走势';
+						this.page_unit = '单位（元／吨）'
+						this.page_series_name = '玉米价格'
+						this.local_chart_title = ['玉米价格']
+					} else {
+						this.getmaterialDetail();
+						this.page_title = '豆粕价格走势';
+						this.page_unit = '单位（元／吨）'
+						this.page_series_name = '豆粕价格'
+						this.local_chart_title = ['豆粕价格']
+					}
+				},
+			})
+		</script>
+	</body>
+
+</html>

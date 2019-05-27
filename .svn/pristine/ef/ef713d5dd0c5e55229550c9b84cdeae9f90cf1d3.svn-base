@@ -1,0 +1,89 @@
+<template>
+	<!--该页面为金牌讲师首页-->
+	<div class="teacher">
+		<ul>
+			<li v-for="(tea,index) in teacher_list" @click="teacherClick(tea.teach_id)">
+				<img :src="tea.cover" alt=""/>
+				<p>{{tea.teach_name}}</p>
+			</li>
+		</ul>
+	</div>
+</template>
+
+<script>
+	import { videoTeacherList, userAction } from '../../api/api'
+	export default {
+		data() {
+			return {
+				teacher_list: []
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = "金牌讲师"
+			videoTeacherList().then(res => {
+				if(this.$store.state.ticket == null) {
+					this.$router.push('/p/login')
+				} else {
+					this.teacher_list = res.data;
+				}
+			})
+			userAction({
+				ticket: this.$store.state.ticket,
+				module: 163,
+				cur_version: this.$store.state.cur_version
+			})
+
+			this.$wechat.ready(() => {
+				var title = '蛋鸡管家 - 全球蛋鸡产业信息化平台';
+				var link = window.location.href;
+				var imgUrl = 'https://api.danjiguanjia.com/public/icon120.png';
+				this.$wechat.onMenuShareTimeline({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareAppMessage({
+					title: title,
+					desc: '关注蛋鸡管家,随时掌握最新行情信息!',
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareQQ({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+				this.$wechat.onMenuShareWeibo({
+					title: title,
+					link: link,
+					imgUrl: imgUrl
+				});
+			});
+
+		},
+		methods: {
+			teacherClick(id) {
+				this.$router.push('/p/teacher/detail/' + id)
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.teacher {
+		width: 90%;
+		margin: 0 auto;
+		ul li {
+			width: 33.33%;
+			float: left;
+			text-align: center;
+			img {
+				display: inline-block;
+				height: 6rem;
+				width: 6rem;
+				border-radius: 50%;
+				padding: 1rem;
+			}
+		}
+	}
+</style>

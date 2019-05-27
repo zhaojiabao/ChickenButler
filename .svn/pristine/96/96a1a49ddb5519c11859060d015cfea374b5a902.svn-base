@@ -1,0 +1,309 @@
+<template>
+	<div>
+		<div class="news_tab">
+			<tab :line-width=2 active-color='#57b663'>
+				<tab-item selected @on-item-click="onItemClick">政策头条</tab-item>
+				<tab-item @on-item-click="onItemClick">新闻动态</tab-item>
+				<tab-item @on-item-click="onItemClick">养殖宝典</tab-item>
+				<tab-item @on-item-click="onItemClick">微周报</tab-item>
+			</tab>
+		</div>
+		<div class="news-warp">
+		<div class="news" v-for="news in news_list" @click="newsClick(news.cms_id)">
+			<div class="news-list">
+				<div class="news-list-left">
+					<div>
+						<img :src="news.cms_pic" alt="" />
+					</div>
+					<p class="method">{{news.source}}</p>
+					<p v-for="tag in news.tag_id.slice(0,2)">
+						<span class="state">{{tag}}</span>
+					</p>
+				</div>
+				<div class="news-list-right">
+					<h3>{{news.cms_title}}</h3>
+					<p>{{news.description}}</p>
+					<p class="data"><span class="span-time">{{news.create_time}}</span><span class="span-number"><i><img src="https://api.danjiguanjia.com/public/image/eye.png" alt="" /></i>{{news.view}}</span></p>
+					<p class="author">{{news.author}}</p>
+					<div class="praise-shoucang" @click.stop>
+						<div class="shoucang" :class="{'praised':news.is_favorite == 1}">
+							<i>
+										<img @click="isFavorite(news)" src="../assets/shoucang1.png" alt="" v-if="news.is_favorite == 0" />
+										<img @click="notFavorite(news)" src="../assets/shoucang.png" alt="" v-else />
+									</i>
+							<span>收藏</span>
+						</div>
+
+						<div class="praise" :class="{'praised':news.is_praise == 1}">
+							<i>
+										<img @click="isPraise(news)" src="../assets/zan.png" alt=""  v-if="news.is_praise==0"/>
+										<img @click="notPraise(news)" src="../assets/zanzan.png" alt="" v-else />
+									</i>
+							<span>{{news.praise}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		</div>
+		<mugen-scroll :handler="fetchData" :should-handle="!loading" class="loadings">
+			loading...
+		</mugen-scroll>
+
+	</div>
+</template>
+<script>
+	import { Tab, TabItem, Sticky, Divider, XButton, Swiper, SwiperItem, Scroller, Spinner } from 'vux'
+	import { getWeixinSign, newsData, userLogin, addNewsCollect, delNewsCollect, addArticlePraise, delArticlePraise } from "../api/api"
+	import wx from 'weixin-js-sdk';
+	import MugenScroll from 'vue-mugen-scroll'
+	export default {
+		components: {
+			Tab,
+			TabItem,
+			Sticky,
+			Divider,
+			XButton,
+			Swiper,
+			SwiperItem,
+			Scroller,
+			Spinner,
+			MugenScroll
+		},
+		data() {
+			return {
+				news_list: [],
+				item: "",
+				loading_state: { //scroller组件的加载状态
+					pullupStatus: 'default'
+				},
+				page: 1,
+				cate: [107, 2, 100, 78],
+				category: 0,
+				loading: false
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '热点资讯';
+			this.$store.state.header.right_title = "";
+			//首次填页面数据
+			this.category = this.cate[0];
+			newsData({
+				ticket: this.$store.state.ticket,
+				category: this.category
+			}).then(res => {
+				this.news_list = res.data.data;
+			});
+		},
+		methods: {
+			//tab-item的点击事件,每次点击之后先重置到顶端
+			onItemClick(index) {
+				this.page = 1;
+				this.news_list = [];
+				this.category = this.cate[index];
+				newsData({
+					category: this.category
+				}).then(res => {
+					this.news_list = res.data.data;
+				});
+			},
+			fetchData() {
+				this.loading = true
+				this.page++;
+				newsData({
+					ticket: this.$store.state.ticket,
+					category: this.category,
+					page: this.page
+				}).then(res => {
+					for(var i = 0; i < res.data.data.length; i++) {
+						this.news_list.push(res.data.data[i]);
+					}
+				});
+				this.loading = false
+			},
+			newsClick(id) {
+				this.$router.push('/p/news/detail/' + id)
+			},
+			isFavorite(news) {
+				news.is_favorite = 1;
+				addNewsCollect({
+					ticket: this.$store.state.ticket,
+					news_id: news.cms_id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('参数缺失');
+					}
+				})
+			},
+			notFavorite(news) {
+				news.is_favorite = 0;
+				delNewsCollect({
+					ticket: this.$store.state.ticket,
+					news_id: news.cms_id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			},
+			isPraise(news) {
+				news.is_praise = 1;
+				news.praise++;
+				addArticlePraise({
+					ticket: this.$store.state.ticket,
+					news_id: news.cms_id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+
+			},
+			notPraise(news) {
+				news.is_praise = 0;
+				news.praise--;
+				delArticlePraise({
+					ticket: this.$store.state.ticket,
+					news_id: news.cms_id
+				}).then(res => {
+					if(res.retcode == "2000") {
+						this.$vux.toast.text(res.msg);
+					} else {
+						this.$vux.toast.text('');
+					}
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="less" scoped>
+	.praised {
+		color: #FF0000;
+	}
+	
+	.news {
+		width: 100%;
+		border-top: 0.5rem solid #f8f8ff;
+	}
+	.news-warp{
+		margin-top: 47px;
+	}
+	.news-list {
+		width: 90%;
+		margin: 0 auto;
+		padding: 1rem 0;
+		position: relative;
+	}
+	
+	.news_tab {
+		position: fixed;
+		width: 100%;
+		z-index: 10;
+		top: 47px;
+		left: 0;
+	}
+	
+	.loadings {
+		width: 90%;
+		margin: 0 auto;
+		text-align: center;
+	}
+	
+	.news-list:before,
+	.news-list:after,
+	.data:after,
+	.author:after,
+	.author:before,
+	.praise-shoucang:after,
+	.praise-shoucang:before {
+		content: " ";
+		display: table;
+		clear: both;
+	}
+	
+	.news-list-left,
+	.news-list-right,
+	{
+		float: left;
+	}
+	
+	.news-list-left {
+		width: 30%;
+		img {
+			display: inline-block;
+			height: 7rem;
+			width: 7rem;
+		}
+		.state {
+			border: 1px solid #CCCCCC;
+			padding: 0.1rem 0.3rem;
+			border-radius: 5px;
+			line-height: 1.3em;
+			margin-right: 0.5rem;
+			float: left;
+			color: #CCCCCC;
+		}
+		.method {
+			padding: 1rem 0;
+		}
+	}
+	
+	.news-list-right p:first-of-type {
+		color: #888888;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+		padding: 1.5rem 0;
+	}
+	
+	.news-list-right {
+		width: 65%;
+		padding-left: 5%;
+		h3 {
+			font-size: 1.2rem;
+			color: #333333;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+		i {
+			display: inline-block;
+			width: 1rem;
+			height: 1.2rem;
+			margin-right: 0.5rem;
+			img {
+				width: 100%;
+			}
+		}
+		.span-time {
+			color: #999999;
+			float: left;
+		}
+		.span-number {
+			color: #999999;
+			float: right;
+		}
+		.author {
+			float: right;
+			padding: 1rem 0;
+		}
+		.shoucang,
+		.praise {
+			float: right;
+			padding: 0 2rem 1rem;
+		}
+		.praise-shoucang {
+			margin-top: 0.5rem;
+			position: absolute;
+			right: 0;
+			bottom: 0;
+		}
+	}
+</style>

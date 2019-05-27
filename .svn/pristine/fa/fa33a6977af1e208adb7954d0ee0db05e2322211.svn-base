@@ -1,0 +1,111 @@
+<template>
+	<div class="price-chart">
+
+		<producing-area></producing-area>
+		<sale-address></sale-address>
+
+		<iframe width="100%" border="no" :src="url" class="ifr-egg-price"></iframe>
+
+		<div class="select-date">
+			<button-tab v-model="cdate">
+				<button-tab-item>月</button-tab-item>
+				<button-tab-item>季</button-tab-item>
+				<button-tab-item>年</button-tab-item>
+			</button-tab>
+		</div>
+	</div>
+</template>
+
+<script>
+	import { ButtonTab, ButtonTabItem } from 'vux'
+	import SaleAddress from './SaleAddress'
+	import ProducingArea from './ProducingArea'
+
+	let base = "https://api.danji.jianong.com/map/chart/price/";
+	let cdate_arr = ['m', 'q', 'y'];
+	export default {
+		components: {
+			ProducingArea,
+			SaleAddress,
+			ButtonTab,
+			ButtonTabItem
+		},
+		data() {
+			return {
+				cdate: 0,
+				url: ''
+			}
+		},
+		watch: {
+			'cdate': 'init',
+			'$store.state.egg_price': {
+				handler: function() {
+					this.init()
+				},
+				deep: true
+			}
+		},
+		mounted() {			
+			this.$store.state.header.title = '蛋价曲线';
+			this.init();
+		},
+		methods: {
+			init() {
+				let cdate = cdate_arr[this.cdate];
+				this.url = `${base}type/${this.$store.state.egg_price.type}/area/${this.$store.state.egg_price.area}/date/${cdate}`;
+			}
+		}
+	}
+</script>
+
+<style lang="less">
+	@theme-color: #56b563;
+	.scroller-mask{
+			background-color: red;
+			display: none;
+		}
+		.scroller-indicator{
+			background-color: rgba(0,0,0,0.1);
+		}
+	.price-chart {
+		background: #FFFFFF;
+		.ifr-egg-price {
+			border: none;
+			height: 55vh;
+		}
+		.select-date {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			.vux-button-group {
+				a {
+					height: 45px;
+					line-height: 46px;
+				}
+				a.vux-button-tab-item-first {
+					border-radius: 0;
+					&:after {
+						border-radius: 0;
+						border: none;
+						border-top: 1px solid @theme-color;
+						border-right: 1px solid @theme-color;
+					}
+				}
+				a.vux-button-tab-item-last {
+					border-radius: 0;
+					&:after {
+						border-radius: 0;
+						border: none;
+						border-top: 1px solid @theme-color;
+						border-left: 1px solid @theme-color;
+					}
+				}
+				a.vux-button-tab-item-middle:after {
+					border: none;
+					border-top: 1px solid @theme-color;
+				}
+			}
+		}
+	}
+</style>

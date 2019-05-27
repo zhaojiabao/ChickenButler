@@ -1,0 +1,101 @@
+<template>
+	<div class="news-detail">
+		<h1>{{data.title}}</h1>
+		<p class="source-author"><span>{{data.source}}</span><span>{{data.author}}</span></p>
+		<p class="time-view"><span>{{data.create_time}}</span><span>阅读 {{param.view+1}}</span></p>
+		<div class="chicken-detail" v-html="data.content"></div>
+		<!--<div class="chicken-detail">
+			<iframe :src="'https://api.danjiguanjia.com/v4/news/viewDetail/id/'+this.$route.params.news_id" width="100%" frameborder="0" height="100%"></iframe>
+		</div>-->
+		<!--<div class="news-bom">
+			<span class="tag" v-for="(tag,index) in data.tag_id" v-if="index<2">{{tag}}</span>
+		</div>-->
+	</div>
+</template>
+
+<script>
+	import { newsDetail, newsDetailParams,userAction } from "../../api/api"
+	export default {
+		data() {
+			return {
+				data: {},
+				param: {}
+			}
+		},
+		mounted() {
+			this.$store.state.header.title = '资讯详情';
+			this.$store.state.header.right_title = "";
+			this.$store.state.header.right_url = "";
+
+			newsDetailParams({
+				ticket: this.$store.state.ticket,
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.param = rs.data;
+			})
+
+			newsDetail({
+				ticket: this.$store.state.ticket,
+				id: this.$route.params.news_id
+			}).then(rs => {
+				this.data = rs.data;
+			})
+			
+			userAction({
+				ticket:this.$store.state.ticket,
+				module:11,
+				cur_version:this.$store.state.cur_version
+			})
+		}
+	}
+</script>
+
+<style lang="less">
+	.chicken-detail {
+		height: 95vh;
+		width: 100%;
+	}
+	
+	.news-detail {
+		width: 90%;
+		margin: 0 auto;
+		img {
+			width: 100%;
+		}
+		h1 {
+			font-size: 1.5rem;
+			padding: 1rem 0;
+			text-align: center;
+		}
+		.source-author,
+		.time-view {
+			text-align: center;
+			padding: 0.3rem 0;
+			span {
+				padding: 1rem;
+				color: #ccc;
+			}
+		}
+	}
+	
+	.tag {
+		padding: 0.1rem 0.4rem;
+		margin: 0 0.1rem;
+		border: 1px solid #CCCCCC;
+		border-radius: 3px;
+		color: #CCCCCC;
+	}
+	
+	.vux-header .vux-header-left a,
+	.vux-header .vux-header-left button,
+	.vux-header .vux-header-right a,
+	.vux-header .vux-header-right button {
+		color: #57B663;
+	}
+	.news-bom{
+		position: fixed;
+		bottom: -5rem;
+		left: 5%;
+		padding-bottom: 20vh;
+	}
+</style>

@@ -1,0 +1,347 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+
+import Layout from '@/views/common/layout'
+import Login from '@/components/Login'
+
+import Index from '@/components/Index'
+
+import Hello from '@/components/Hello'
+
+//蛋价查询
+import EggPrice from '@/components/EggPrice'
+import SearchResult from '@/views/eggprice/SearchResult' //搜索结果
+import PriceForecast from '@/views/eggprice/Forecast-Price' //蛋价预测
+import ForecastRecord from '@/views/eggprice/Forecast-Record' //预测记录
+import ForecastActive from '@/views/eggprice/Forecast-Active' //预测活动
+import PriceChart from '@/views/eggprice/Chart-Price' //价格曲线
+import MaterialChart from '@/views/eggprice/Chart-Material' //原料曲线
+import CullChickChart from '@/views/eggprice/Chart-CullChick' //淘汰鸡曲线
+
+//资讯
+import NewsDetail from '@/views/news/NewsDetail' //资讯详情
+
+//论坛
+import Forum from '@/components/Forum'
+import PostDetail from '@/views/forum/PostDetail' //帖子详情
+import ForumList from '@/views/forum/ForumList' //帖子列表
+import MyForum from '@/views/forum/MyForum' //我的论坛
+import MyMessage from '@/views/forum/MyMessage' //我的消息
+import CircleDetail from '@/views/forum/CircleDetail' //圈子详情
+import PostCircleList from '@/views/forum/PostCircleList'//发帖前圈子列表
+import PostContainer from '@/views/forum/PostContainer'//发帖页面
+import BannerDetail from '@/views/news/BannerDetail' //首页banner详情
+
+//管家视界
+import ManagerView from '@/components/ManagerView' //首页
+import BreedClass from '@/views/managerview/BreedClass' //养殖课堂
+import ChickenHouse from '@/views/managerview/ChickenHouse' //走进鸡场
+import Teacher from '@/views/managerview/Teacher' //金牌名师
+import ShortVideo from '@/views/managerview/ShortVideo' //短视频
+import VideoDetail from '@/views/managerview/VideoDetail' //视频详情
+import TeacherDetail from '@/views/managerview/TeacherDetail' //讲师详情
+import ChickenDetail from '@/views/managerview/ChickenDetail' //鸡场详情
+
+//咨询列表
+import News from '@/components/News'
+
+//秒杀商品
+import SeckillGoodsDetail from '@/views/seckill/GoodsDetail' //商品详情
+
+//活动页面
+import PB_coolSummer from '@/views/active/PB_coolSummer' //清凉一夏
+import PB_autumn from '@/views/active/PB_autumn' //迎秋送暑
+import PB_autumn_lotty from '@/views/active/PB_autumn_lotty' //迎秋送暑
+
+//个人中心
+import CooperationIndex from '@/views/personal/business/CooperationIndex' // 商业合作首页
+import CooperationCompanyInfo from '@/views/personal/business/CooperationCompanyInfo' // 商家信息
+import CooperationSuccess from '@/views/personal/business/CooperationSuccess' // 提交成功
+
+import CeShi from '@/components/CeShi' //測試請無視 
+
+Vue.use(Router)
+
+export default new Router({
+	//mode: 'history',
+	routes: [{
+			path: '/',
+			name: 'Index',
+			component: Index
+		}, {
+			path: '/hello',
+			name: 'Hello',
+			component: Hello
+		},
+		{
+			path: '/p',
+			component: Layout,
+			children: [{
+					path: 'login',
+					name: 'login',
+					component: Login
+				}, {
+					path: 'regist',
+					name: 'regist',
+					component: Login
+				},
+				/**
+				 * 蛋价查询模块
+				 * @pages 首页    	  
+				 */
+				{
+					path: 'egg-price',
+					name: 'egg-price',
+					component: EggPrice
+				}, {
+					path: 'search-result/:area',
+					name: 'SearchResult',
+					component: SearchResult
+				}, {
+					path: 'price-forecast',
+					name: 'PriceForecast',
+					component: PriceForecast
+				}, {
+					path: 'forecast-record',
+					name: 'ForecastRecord',
+					component: ForecastRecord
+				}, {
+					path: 'forecast-active',
+					name: 'ForecastActive',
+					component: ForecastActive
+				}, {
+					path: 'price-chart',
+					name: 'PriceChart',
+					component: PriceChart
+				}, {
+					path: 'material-chart',
+					name: 'MaterialChart',
+					component: MaterialChart
+				}, {
+					path: 'cull-chick-chart',
+					name: 'CullChickChart',
+					component: CullChickChart
+				},
+				/**
+				 * 秒杀模块
+				 * @pages 商品详情    	  
+				 */
+				{
+					path: 'seckill/goods-detail/:time_id/:good_id',
+					name: 'seckill-goods-detail',
+					component: SeckillGoodsDetail
+				},
+				/**
+				 * banner详情
+				 * @pages  
+				 */
+				{
+					path: 'banner-detail/:id',
+					name: 'banner-detail',
+					component: BannerDetail
+				}
+				,
+				/**
+				 * 资讯模块
+				 * @pages  资讯首页 	  
+				 */
+				{
+					path: 'news',
+					name: 'news',
+					component: News
+				},
+				/**
+				 * 资讯模块
+				 * @pages 咨询详情页  
+				 */
+				{
+					path: 'news/detail/:news_id',
+					name: 'news-detail',
+					component: NewsDetail
+				},
+				/**
+				 *管家视界首页 
+				 */
+				{
+					path: 'managerview',
+					name: 'managerview',
+					component: ManagerView
+				},
+				/**
+				 * 管家视界
+				 * 走进鸡场
+				 */
+				{
+					path: 'chicken-house',
+					name: 'chicken-house',
+					component: ChickenHouse
+				},
+				/**
+				 * 管家视界
+				 * 养殖课堂
+				 */
+				{
+					path: 'breed-class',
+					name: 'breed-class',
+					component: BreedClass
+				},
+				/**
+				 * 管家视界
+				 * 金牌名师
+				 */
+				{
+					path: 'teacher',
+					name: 'teacher',
+					component: Teacher
+				},
+				/**
+				 * 管家视界
+				 * 短视频
+				 */
+				{
+					path: 'short-video',
+					name: 'short-video',
+					component: ShortVideo
+				},
+				/**
+				 * 管家视界
+				 * 视频详情
+				 */
+				{
+					path: 'video/detail/:video_id',
+					name: 'video-detail',
+					component: VideoDetail
+				},
+				/**
+				 * 管家视界
+				 * 讲师详情
+				 */
+				{
+					path: 'teacher/detail/:teacher_id',
+					name: 'teacher-detail',
+					component: TeacherDetail
+				},
+				/**
+				 * 管家视界
+				 * 鸡场详情
+				 */
+				{
+					path: 'chickend/detail/:chicken_id',
+					name: 'chicken-detail',
+					component: ChickenDetail
+				},
+				/**
+				 * 论坛模块
+				 * @pages 帖子详情     
+				 */
+				{ // 帖子详情
+					path: 'forum/post-detail/:post_id',
+					name: 'post-detail',
+					component: PostDetail
+				},
+				/**
+				 * 论坛模块
+				 * @pages 帖子列表 
+				 */
+				{
+					path: 'forum-list/:index',
+					name: 'ForumList',
+					component: ForumList
+				},
+				/**
+				 * 论坛模块
+				 * @pages 我的论坛	  
+				 */
+				{
+					path: 'myforum',
+					name: 'myforum',
+					component: MyForum
+				},
+				/**
+				 * 论坛模块
+				 * @pages 我的消息	  CircleDetail
+				 */
+				{
+					path: 'mymessage',
+					name: 'mymessage',
+					component: MyMessage
+				},
+				/**
+				 * 论坛模块
+				 * @pages 圈子列表	  CircleDetail
+				 */
+				{
+					path: 'circle/detail/:circle_id',
+					name: 'circle-detail',
+					component: CircleDetail
+				},
+				/**
+				 * 个人中心商业合作
+				 * @pages 首页    企业信息 	  
+				 */
+				{
+					path: 'cooperation-index',
+					name: 'CooperationIndex',
+					component: CooperationIndex
+				},
+				{
+					path: 'cooperation-company-info',
+					name: 'CooperationCompanyInfo',
+					component: CooperationCompanyInfo
+				},
+				{
+					path: 'cooperation-success/:id',
+					name: 'CooperationSuccess',
+					component: CooperationSuccess
+				},
+				/**
+				 *測試請無視 
+				 */
+				{
+					path: 'ceshi',
+					name: 'ceshi',
+					component: CeShi
+				},
+				/**
+				 * 论坛模块
+				 * @pages 论坛首页
+				 */
+				{
+					path: 'forum',
+					name: 'forum',
+					component: Forum
+				},
+				/**
+				 * 论坛模块
+				 * @pages 发帖
+				 */
+				{
+					path: 'post/container/:type/:circle_id',
+					name: 'post-container',
+					component: PostContainer
+				},
+				/**
+				 * 论坛模块
+				 * @pages 发帖前圈子的列表
+				 */
+				{
+					path: 'postcircleList/:type',
+					name: 'postcircleList',
+					component: PostCircleList
+				}
+			]
+		}, {
+			path: '/cool-summer',
+			name: 'CoolSummer',
+			component: PB_coolSummer
+		}, {
+			path: '/autumn',
+			name: 'PBAutumn',
+			component: PB_autumn_lotty
+		}, {
+			path: '/pb_autumn',
+			name: 'PB_autumn_lotty',
+			component: PB_autumn_lotty
+		}
+	]
+})

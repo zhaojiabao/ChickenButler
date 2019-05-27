@@ -1,0 +1,61 @@
+<template>
+	<!--该页面为走进鸡场详情页-->
+	<div class="chicken-detail">
+		<iframe :src="'https://bg.danjiguanjia.com/index/video/video?id='+this.$route.params.chicken_id"  style="background-color: #FFFFFF;" width="100%" frameborder="0" height="100%"></iframe>
+	</div>
+</template>
+
+<script>
+	import { videoChickList } from '../../api/api'
+	export default {
+		data() {
+			return {
+				chicken_list: [],
+			}
+		},
+		methods: {
+
+		},
+		mounted() {
+			this.$store.state.header.right_title = ""
+			videoChickList().then(res => {
+				this.chicken_list = res.data;
+				this.$store.state.header.title = '走进鸡场'
+
+				this.$wechat.ready(() => {
+					var title = this.chicken_list.title;
+					var link = window.location.href;
+					var imgUrl = this.chicken_list.cover;
+					this.$wechat.onMenuShareTimeline({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareAppMessage({
+						title: title,
+						desc: this.chicken_list.company_name,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareQQ({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+					this.$wechat.onMenuShareWeibo({
+						title: title,
+						link: link,
+						imgUrl: imgUrl
+					});
+				});
+			});
+
+		}
+	}
+</script>
+
+<style lang="less">
+	.chicken-detail {
+		height: 100vh;
+	}
+</style>

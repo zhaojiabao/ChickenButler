@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<title>鸡蛋报价</title>
+		<link rel="stylesheet" href="css/normalize.css" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0" />
+		<meta name="format-detection" content="telephone=no, email=no" />
+	</head>
+
+	<body>
+		<div class="container">
+			<div id='stars'></div>
+			<div id='stars2'></div>
+			<div id='stars3'></div>
+			<!-- Swiper -->
+			<div class="swiper-container">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide">
+						<!--鸡蛋报价-->
+						<div id="eggPrice" style="width: 100%;height: 100vh;"></div>
+					</div>
+					<div class="swiper-slide">
+						<!--原料报价-->
+						<div id="materialPrice" style="width: 100%;height: 100vh;"></div>
+					</div>
+					<div class="swiper-slide">
+						<!--淘汰鸡报价-->
+						<div id="chickenPrice" style="width: 100%;height: 100vh;"></div>
+					</div>
+				</div>
+				<!-- Add Pagination -->
+				<div class="swiper-pagination"></div>
+			</div>
+
+		</div>
+
+	</body>
+
+</html>
+<link href="https://cdn.bootcss.com/Swiper/4.0.7/css/swiper.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/mapprice.css" />
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/axios/0.17.1/axios.min.js"></script>
+<script src="https://cdn.bootcss.com/Swiper/4.0.7/js/swiper.min.js"></script>
+<script type="text/javascript" src="js/echarts-all.js"></script>
+<script type="text/javascript" src="js/priceMap.js"></script>
+<script>
+	var titles = ['鸡蛋报价', '原料报价', '淘汰鸡报价'];
+	var swiper = new Swiper('.swiper-container', {
+		pagination: {
+			el: '.swiper-pagination',
+		},
+		on: {
+			slideChange: function() {
+				document.title = titles[this.activeIndex];
+				var ua = navigator.userAgent.toLowerCase();
+				GetCurrentPageTitle(document.title)
+			},
+		}
+	});
+</script>
+<style>
+	html,
+	body {
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+	}
+	
+	body {
+		background: #eee;
+		font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+		font-size: 14px;
+		color: #000;
+		margin: 0;
+		padding: 0;
+	}
+	
+	.swiper-pagination-bullet {
+		background: #ffffff;
+		opacity: .4;
+	}
+	
+	.swiper-pagination-bullet-active {
+		background: #ffffff;
+		opacity: .9;
+	}
+	
+	.swiper-container {
+		width: 100%;
+		height: 100%;
+		z-index: 99999;
+	}
+	
+	.swiper-slide {
+		text-align: center;
+		font-size: 18px;
+		display: -webkit-box;
+		display: -ms-flexbox;
+		display: -webkit-flex;
+		display: flex;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		-webkit-justify-content: center;
+		justify-content: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		-webkit-align-items: center;
+		align-items: center;
+	}
+	
+	.container {
+		height: 100vh;
+		background: radial-gradient(ellipse at -6vh bottom, #218edc 0, #051042 90%);
+		overflow: hidden;
+	}
+</style>

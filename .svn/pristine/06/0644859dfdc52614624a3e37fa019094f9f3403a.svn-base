@@ -1,0 +1,21 @@
+<template>
+	<div class="layout">
+		
+		<Pheader></Pheader>
+		<router-view></router-view>		
+		
+	</div>
+</template>
+
+<script>
+	import Pheader from './header'
+	export default{
+		components: {
+			Pheader
+		},
+		
+	}
+</script>
+
+<style>
+</style>
