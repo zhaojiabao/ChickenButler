@@ -15,7 +15,7 @@
     "echarts": "^3.8.5",
     "fastclick": "^1.0.6",
     "lazy-vue": "^1.0.2",
-    "nuxt": "^1.0.0-rc11",
+    "nuxt": "^1.4.5",
     "vue": "^2.4.4",
     "vue-awesome": "^2.3.1",
     "vue-echarts-v3": "^1.0.4",
